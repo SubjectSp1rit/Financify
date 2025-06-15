@@ -1,6 +1,6 @@
 import Foundation
 
-final class CategoriesService {
+final actor CategoriesService {
     // MARK: - Methods
     func getAllCategories() async throws -> [Category] {
         try await categories()

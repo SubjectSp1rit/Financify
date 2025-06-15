@@ -10,7 +10,12 @@ struct Category: Codable, Identifiable {
         isIncome ? .income : .outcome
     }
     
-    init(id: Int, name: String, emoji: Character, isIncome: Bool) {
+    init(
+        id: Int,
+        name: String,
+        emoji: Character,
+        isIncome: Bool
+    ) {
         self.id = id
         self.name = name
         self.emoji = emoji

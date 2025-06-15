@@ -9,7 +9,10 @@ extension Transaction {
     
     static func parse(csvLine: String, delimiter: Character = ",") -> Transaction? {
         let columns = csvLine
-            .split(separator: delimiter, omittingEmptySubsequences: false)
+            .split(
+                separator: delimiter,
+                omittingEmptySubsequences: false
+            )
             .map(String.init)
         
         guard columns.count == 8 else { return nil }
@@ -28,7 +31,10 @@ extension Transaction {
         
         let comment = columns[5]
             .trimmingCharacters(in: CharacterSet(charactersIn: "\""))
-            .replacingOccurrences(of: "\"\"", with: "\"")
+            .replacingOccurrences(
+                of: "\"\"",
+                with: "\""
+            )
         
         return Transaction(
             id: id,

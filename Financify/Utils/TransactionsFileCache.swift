@@ -10,6 +10,7 @@ final actor TransactionsFileCache {
         if transactions.contains(where: { $0.id == transaction.id }) {
             throw TransactionsFileCacheError.transactionAlreadyExists("Ошибка при добавлении транзакции: транзакция с id = \(transaction.id) уже существует.")
         }
+        
         transactions.append(transaction)
     }
     
@@ -71,7 +72,10 @@ final actor TransactionsFileCache {
         
         let csvObjects: String = try await Task.detached(priority: .background) {
             let data = try Data(contentsOf: fileURL)
-            guard let str = String(data: data, encoding: .utf8) else {
+            guard let str = String(
+                data: data,
+                encoding: .utf8
+            ) else {
                 throw TransactionsFileCacheError.wrongFormat(
                     "Ошибка при загрузке данных из .csv-файла: невозможно прочитать \(fileURL) как UTF-8."
                 )
