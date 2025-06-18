@@ -16,38 +16,36 @@ struct MainTabView: View {
     
     var body: some View {
         TabView {
-            Group {
-                TransactionsListView(direction: .outcome)
-                    .tabItem {
-                        Image(Direction.outcome.tabIcon)
-                            .renderingMode(.template)
-                        
-                        Text(Direction.outcome.tabTitle) }
-                TransactionsListView(direction: .income)
-                    .tabItem {
-                        Image(Direction.income.tabIcon)
-                            .renderingMode(.template)
-                        
-                        Text(Direction.income.tabTitle) }
-                Text("Счёт")
-                    .tabItem {
-                        Image("calculator")
-                            .renderingMode(.template)
-                        
-                        Text("Счёт") }
-                Text("Статьи")
-                    .tabItem {
-                        Image("categories")
-                            .renderingMode(.template)
-                        
-                        Text("Статьи") }
-                Text("Настройки")
-                    .tabItem {
-                        Image("gear")
-                            .renderingMode(.template)
-                        
-                        Text("Настройки") }
-            }
+            TransactionsListView(direction: .outcome)
+                .tabItem {
+                    Image(Direction.outcome.tabIcon)
+                        .renderingMode(.template)
+                    
+                    Text(Direction.outcome.tabTitle) }
+            TransactionsListView(direction: .income)
+                .tabItem {
+                    Image(Direction.income.tabIcon)
+                        .renderingMode(.template)
+                    
+                    Text(Direction.income.tabTitle) }
+            Text("Счёт")
+                .tabItem {
+                    Image("calculator")
+                        .renderingMode(.template)
+                    
+                    Text("Счёт") }
+            Text("Статьи")
+                .tabItem {
+                    Image("categories")
+                        .renderingMode(.template)
+                    
+                    Text("Статьи") }
+            Text("Настройки")
+                .tabItem {
+                    Image("gear")
+                        .renderingMode(.template)
+                    
+                    Text("Настройки") }
         }
         .tint(.accent)
     }

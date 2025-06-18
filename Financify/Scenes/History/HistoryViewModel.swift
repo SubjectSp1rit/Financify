@@ -1,7 +1,7 @@
-import SwiftUI
+import Foundation
 
 @MainActor
-final class TransactionsListViewModel: ObservableObject {
+final class HistoryViewModel: ObservableObject {
     // MARK: - Services
     private let categoriesService: CategoriesService = CategoriesService()
     private let transactionsService: TransactionsService = TransactionsService()
@@ -10,17 +10,31 @@ final class TransactionsListViewModel: ObservableObject {
     @Published private(set) var categories: [Int:Category] = [:]
     @Published private(set) var transactions: [Transaction] = []
     @Published var isLoading: Bool = false
+    @Published var fromDate: Date
+    @Published var toDate: Date
     
     // MARK: - Properties
     var total: Decimal {
         transactions.reduce(0) { $0 + $1.amount }
     }
     
+    private var startOfDay: Date {
+        calendar.startOfDay(for: fromDate)
+    }
+    
+    private var endOfDay: Date {
+        let start = calendar.startOfDay(for: toDate)
+        return calendar.date(byAdding: DateComponents(day: 1, second: -1), to: start)!
+    }
+    
     let direction: Direction
+    let calendar: Calendar = Calendar.current
     
     // MARK: - Lifecycle
     init(direction: Direction) {
         self.direction = direction
+        self.toDate = Date()
+        self.fromDate =  calendar.date(byAdding: .month, value: -1, to: Date())!
     }
     
     // MARK: - Methods
@@ -32,12 +46,9 @@ final class TransactionsListViewModel: ObservableObject {
             let categories = try await categoriesService.getCategories(by: direction)
             self.categories = Dictionary(uniqueKeysWithValues: categories.map { ($0.id, $0) })
 
-            let calendar = Calendar.current
-            let startDay = calendar.startOfDay(for: Date())
-            let endDay = calendar.date(byAdding: .day, value: 1, to: startDay)!.addingTimeInterval(-1)
-            let allToday = try await transactionsService.getAllTransactions(byPeriod: startDay...endDay)
+            let transactionsByPeriod = try await transactionsService.getAllTransactions(byPeriod: startOfDay...endOfDay)
             
-            transactions = allToday.filter { transaction in
+            transactions = transactionsByPeriod.filter { transaction in
                 guard let category = self.categories[transaction.categoryId] else { return false }
                 return direction == .income ? category.isIncome : !category.isIncome
             }.sorted { $0.transactionDate > $1.transactionDate }

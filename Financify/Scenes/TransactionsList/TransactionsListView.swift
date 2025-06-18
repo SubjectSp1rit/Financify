@@ -12,9 +12,11 @@ struct TransactionsListView: View {
     var body: some View {
         NavigationStack {
             ZStack(alignment: .bottomTrailing) {
+                Color.pink.ignoresSafeArea()
+                
                 List {
                     Section {
-                        SummaryCell(total: viewModel.total)
+                        SummaryCell(total: viewModel.total, title: .summaryTitle)
                     }
                     
                     Section(header:
@@ -54,16 +56,14 @@ struct TransactionsListView: View {
             .navigationTitle(viewModel.direction.title)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: {
-                        
-                    }) {
+                    NavigationLink(destination: HistoryView(direction: viewModel.direction)) {
                         Image(systemName: .clockIconName)
-                            .foregroundColor(Color(hex: .toolbarIconColorHex))
                     }
                 }
             }
             .task { await viewModel.refresh() }
         }
+        .tint(Color(hex: .toolbarIconColorHex))
     }
 }
 
@@ -73,6 +73,7 @@ fileprivate extension String {
     static let plusIconName: String = "plus"
     static let clockIconName: String = "clock"
     static let toolbarIconColorHex: String = "#6F5DB7"
+    static let summaryTitle: String = "Всего"
 }
 
 fileprivate extension CGFloat {
