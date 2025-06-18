@@ -1,8 +1,10 @@
 import SwiftUI
 
 struct TransactionsListView: View {
+    // MARK: - Properties
     @StateObject private var viewModel: TransactionsListViewModel
     
+    // MARK: - Lifecycle
     init(direction: Direction) {
         _viewModel = StateObject(wrappedValue: TransactionsListViewModel(direction: direction))
     }
@@ -16,8 +18,8 @@ struct TransactionsListView: View {
                     }
                     
                     Section(header:
-                        Text("ОПЕРАЦИИ")
-                        .font(.system(size: 13, weight: .regular))
+                        Text(verbatim: .operationsHeader)
+                        .font(.system(size: .sectionHeaderFontSize, weight: .regular))
                         .foregroundColor(.secondary))
                     {
                         ForEach(viewModel.transactions) { transaction in
@@ -30,7 +32,6 @@ struct TransactionsListView: View {
                         }
                     }
                 }
-                .background(Color.primary)
                 
                 // Пока данные грузятся - показываем анимацию загрузки по центру экрана
                 if viewModel.isLoading && viewModel.transactions.isEmpty {
@@ -40,15 +41,15 @@ struct TransactionsListView: View {
                 Button(action: {
                     
                 }) {
-                    Image(systemName: "plus")
-                        .font(.system(size: 24))
+                    Image(systemName: .plusIconName)
+                        .font(.system(size: .plusButtonIconSize))
                         .foregroundColor(.white)
-                        .frame(width: 56, height: 56)
+                        .frame(width: .plusButtonFrameSize, height: .plusButtonFrameSize)
                         .background(.accent)
                         .clipShape(Circle())
                 }
                 .padding(.horizontal)
-                .padding(.bottom, 32)
+                .padding(.bottom, .plusButtonBottomPadding)
             }
             .navigationTitle(viewModel.direction.title)
             .toolbar {
@@ -56,8 +57,8 @@ struct TransactionsListView: View {
                     Button(action: {
                         
                     }) {
-                        Image(systemName: "clock")
-                            .foregroundColor(Color(hex: "#6F5DB7"))
+                        Image(systemName: .clockIconName)
+                            .foregroundColor(Color(hex: .toolbarIconColorHex))
                     }
                 }
             }
@@ -66,6 +67,22 @@ struct TransactionsListView: View {
     }
 }
 
+// MARK: - Constants
+fileprivate extension String {
+    static let operationsHeader: String = "ОПЕРАЦИИ"
+    static let plusIconName: String = "plus"
+    static let clockIconName: String = "clock"
+    static let toolbarIconColorHex: String = "#6F5DB7"
+}
+
+fileprivate extension CGFloat {
+    static let sectionHeaderFontSize: CGFloat = 13
+    static let plusButtonIconSize: CGFloat = 24
+    static let plusButtonFrameSize: CGFloat = 56
+    static let plusButtonBottomPadding: CGFloat = 32
+}
+
+// MARK: - Preview
 #Preview {
     TransactionsListView(direction: .outcome)
 }

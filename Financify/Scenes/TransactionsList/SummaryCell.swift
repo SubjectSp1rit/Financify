@@ -1,11 +1,12 @@
 import SwiftUI
 
 struct SummaryCell: View {
+    // MARK: - Properties
     var total: Decimal
     
     var body: some View {
         HStack {
-            Text("Всего")
+            Text(verbatim: .summaryTitle)
             Spacer()
             Text(total.moneyFormatted)
                 .foregroundStyle(.secondary)
@@ -13,6 +14,12 @@ struct SummaryCell: View {
     }
 }
 
+// MARK: - Constants
+fileprivate extension String {
+    static let summaryTitle: String = "Всего"
+}
+
+// MARK: - Preview
 #Preview {
     SummaryCell(total: 534_424)
 }

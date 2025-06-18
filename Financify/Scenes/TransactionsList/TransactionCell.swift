@@ -1,21 +1,22 @@
 import SwiftUI
 
 struct TransactionCell: View {
+    // MARK: - Properties
     let transaction: Transaction
     let category: Category?
     
     var body: some View {
         HStack(alignment: .center) {
-            Text(String(category?.emoji ?? "❓"))
-                .font(.system(size: 20))
-                .padding(4)
-                .background(Circle().fill(Color(hex: "#D4FAE6")))
+            Text(String(category?.emoji ?? .unknownCategoryEmoji))
+                .font(.system(size: .emojiFontSize))
+                .padding(.emojiPadding)
+                .background(Circle().fill(Color(hex: .emojiBackgroundHex)))
             
             VStack(alignment: .leading, spacing: 2) {
-                Text(category?.name ?? "Unknown Category")
+                Text(category?.name ?? .unknownCategoryName)
                 if let comment = transaction.comment {
                     Text(comment)
-                        .font(.system(size: 13))
+                        .font(.system(size: .commentFontSize))
                         .foregroundColor(.gray)
                 }
             }
@@ -27,6 +28,23 @@ struct TransactionCell: View {
     }
 }
 
+// MARK: - Constants
+fileprivate extension Character {
+    static let unknownCategoryEmoji: Character = "❓"
+}
+
+fileprivate extension String {
+    static let unknownCategoryName: String = "Unknown Category"
+    static let emojiBackgroundHex: String = "#D4FAE6"
+}
+
+fileprivate extension CGFloat {
+    static let emojiFontSize: CGFloat = 20
+    static let emojiPadding: CGFloat = 4
+    static let commentFontSize: CGFloat = 13
+}
+
+// MARK: - Preview
 #Preview {
     TransactionCell(
         transaction: Transaction(
@@ -48,4 +66,3 @@ struct TransactionCell: View {
             
     )
 }
-

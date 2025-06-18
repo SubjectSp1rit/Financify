@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct MainTabView: View {
+    // MARK: - Lifecycle
     init() {
         // Фон таббара
         let tabAppearance = UITabBarAppearance()
