@@ -1,28 +1,72 @@
 import SwiftUI
 
+actor ColorHexCache {
+    private var cache: [UInt64: Color] = [:]
+
+    func get(_ hex: UInt64) -> Color? {
+        cache[hex]
+    }
+
+    func set(_ hex: UInt64, color: Color) {
+        cache[hex] = color
+    }
+}
+
 extension Color {
-    init(hex: String) {
-        let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
-        var int: UInt64 = 0
-        Scanner(string: hex).scanHexInt64(&int)
-        let a, r, g, b: UInt64
-        switch hex.count {
-        case 3: // RGB (12-bit)
-            (a, r, g, b) = (255, (int >> 8) * 17, (int >> 4 & 0xF) * 17, (int & 0xF) * 17)
-        case 6: // RGB (24-bit)
-            (a, r, g, b) = (255, int >> 16, int >> 8 & 0xFF, int & 0xFF)
-        case 8: // ARGB (32-bit)
-            (a, r, g, b) = (int >> 24, int >> 16 & 0xFF, int >> 8 & 0xFF, int & 0xFF)
-        default:
-            (a, r, g, b) = (1, 1, 1, 0)
+    private static var syncCache: [UInt64: Color] = [:]
+    private static let colorCache = ColorHexCache()
+
+    init(hex: String, useAlphaIfAvailable: Bool = true) {
+        let hexString = hex
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .trimmingCharacters(in: CharacterSet(charactersIn: "#"))
+            .uppercased()
+
+        var hexNumber: UInt64 = 0
+        guard Scanner(string: hexString).scanHexInt64(&hexNumber) else {
+            self = .clear
+            return
         }
 
-        self.init(
-            .sRGB,
-            red: Double(r) / 255,
-            green: Double(g) / 255,
-            blue:  Double(b) / 255,
-            opacity: Double(a) / 255
-        )
+        if let cached = Self.syncCache[hexNumber] {
+            self = cached
+            return
+        }
+
+        let r, g, b, a: Double
+
+        switch hexString.count {
+        case 3:
+            r = Double((hexNumber >> 8) & 0xF) / 15
+            g = Double((hexNumber >> 4) & 0xF) / 15
+            b = Double(hexNumber & 0xF) / 15
+            a = 1.0
+
+        case 6:
+            r = Double((hexNumber >> 16) & 0xFF) / 255
+            g = Double((hexNumber >> 8) & 0xFF) / 255
+            b = Double(hexNumber & 0xFF) / 255
+            a = 1.0
+
+        case 8:
+            a = useAlphaIfAvailable ? Double((hexNumber >> 24) & 0xFF) / 255 : 1.0
+            r = Double((hexNumber >> 16) & 0xFF) / 255
+            g = Double((hexNumber >> 8) & 0xFF) / 255
+            b = Double(hexNumber & 0xFF) / 255
+
+        default:
+            self = .clear
+            return
+        }
+
+        let result = Color(.sRGB, red: r, green: g, blue: b, opacity: a)
+
+        Self.syncCache[hexNumber] = result
+
+        Task {
+            await Self.colorCache.set(hexNumber, color: result)
+        }
+
+        self = result
     }
 }
