@@ -4,11 +4,6 @@ struct HistoryView: View {
     // MARK: - Properties
     @StateObject private var viewModel: HistoryViewModel
     
-    // MARK: - Lifecycle
-    init(direction: Direction) {
-        _viewModel = StateObject(wrappedValue: HistoryViewModel(direction: direction))
-    }
-    
     private var fromDateBinding: Binding<Date> {
         Binding<Date>(
             get: { viewModel.fromDate },
@@ -37,6 +32,21 @@ struct HistoryView: View {
         )
     }
     
+    private var selectedSortOptionBinding: Binding<SortOption> {
+        Binding<SortOption>(
+            get: { viewModel.selectedSortOption },
+            set: { newOption in
+                viewModel.selectedSortOption = newOption
+                Task { await viewModel.refresh() }
+            }
+        )
+    }
+    
+    // MARK: - Lifecycle
+    init(direction: Direction) {
+        _viewModel = StateObject(wrappedValue: HistoryViewModel(direction: direction))
+    }
+    
     var body: some View {
         ZStack {
             List {
@@ -59,6 +69,7 @@ struct HistoryView: View {
                             .background(Color(hex: .datePickerHexColor)
                             .cornerRadius(.datePickerCornerRadius))
                     }
+                    SortCell(selectedOption: selectedSortOptionBinding)
                     SummaryCell(total: viewModel.total, title: .summaryCellTitle)
                 }
                 

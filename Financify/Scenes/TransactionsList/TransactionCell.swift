@@ -18,6 +18,8 @@ struct TransactionCell: View {
                     Text(comment)
                         .font(.system(size: .commentFontSize))
                         .foregroundColor(.gray)
+                        .lineLimit(.numberOfCommentLines)
+                        .truncationMode(.tail)
                 }
             }
             
@@ -29,6 +31,10 @@ struct TransactionCell: View {
 }
 
 // MARK: - Constants
+fileprivate extension Int {
+    static let numberOfCommentLines: Int = 1
+}
+
 fileprivate extension Character {
     static let unknownCategoryEmoji: Character = "❓"
 }

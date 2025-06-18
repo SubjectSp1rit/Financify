@@ -12,6 +12,7 @@ final class HistoryViewModel: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var fromDate: Date
     @Published var toDate: Date
+    @Published var selectedSortOption: SortOption = .newestFirst
     
     // MARK: - Properties
     var total: Decimal {
@@ -51,7 +52,18 @@ final class HistoryViewModel: ObservableObject {
             transactions = transactionsByPeriod.filter { transaction in
                 guard let category = self.categories[transaction.categoryId] else { return false }
                 return direction == .income ? category.isIncome : !category.isIncome
-            }.sorted { $0.transactionDate > $1.transactionDate }
+            }
+            
+            switch selectedSortOption {
+            case .newestFirst:
+                transactions = transactions.sorted { $0.transactionDate > $1.transactionDate }
+            case .oldestFirst:
+                transactions = transactions.sorted { $0.transactionDate < $1.transactionDate }
+            case .amountDescending:
+                transactions = transactions.sorted { $0.amount > $1.amount }
+            case .amountAscending:
+                transactions = transactions.sorted { $0.amount < $1.amount }
+            }
         } catch {
             print(error.localizedDescription)
         }

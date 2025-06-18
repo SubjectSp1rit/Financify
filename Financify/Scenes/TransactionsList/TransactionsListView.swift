@@ -9,6 +9,16 @@ struct TransactionsListView: View {
         _viewModel = StateObject(wrappedValue: TransactionsListViewModel(direction: direction))
     }
     
+    private var selectedSortOptionBinding: Binding<SortOption> {
+        Binding<SortOption>(
+            get: { viewModel.selectedSortOption },
+            set: { newOption in
+                viewModel.selectedSortOption = newOption
+                Task { await viewModel.refresh() }
+            }
+        )
+    }
+    
     var body: some View {
         NavigationStack {
             ZStack(alignment: .bottomTrailing) {
@@ -16,6 +26,7 @@ struct TransactionsListView: View {
                 
                 List {
                     Section {
+                        SortCell(selectedOption: selectedSortOptionBinding)
                         SummaryCell(total: viewModel.total, title: .summaryTitle)
                     }
                     
