@@ -1,6 +1,6 @@
 import Foundation
 
-final class TransactionsService {
+final actor TransactionsService {
     // MARK: - Properties
     private let cache: TransactionsFileCache = TransactionsFileCache()
     

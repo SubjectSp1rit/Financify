@@ -2,7 +2,14 @@ import Foundation
 
 final actor TransactionsFileCache {
     // MARK: - Properties
-    private(set) var transactions: [Transaction] = []
+    private(set) var transactions: [Transaction] = [
+        Transaction(id: 0, accountId: 0, categoryId: 1, amount: 1500, transactionDate: Calendar.current.date(byAdding: .month, value: -1, to: Date())!, createdAt: Date(), updatedAt: Date()),
+        Transaction(id: 1, accountId: 0, categoryId: 2, amount: 15040, transactionDate: Date(), comment: "Rammstein", createdAt: Date(), updatedAt: Date()),
+        Transaction(id: 2, accountId: 0, categoryId: 3, amount: 100, transactionDate: Date(), createdAt: Date(), updatedAt: Date()),
+        Transaction(id: 3, accountId: 0, categoryId: 9, amount: 1000, transactionDate: Calendar.current.date(byAdding: .month, value: -1, to: Date())!, comment: "ласт додеп",createdAt: Date(), updatedAt: Date()),
+        Transaction(id: 4, accountId: 0, categoryId: 9, amount: 2000, transactionDate: Calendar.current.date(byAdding: .day, value: -1, to: Date())!, comment: "длинное описаниеееееееееееееееее", createdAt: Date(), updatedAt: Date()),
+        Transaction(id: 5, accountId: 0, categoryId: 9, amount: 3000, transactionDate: Date(), createdAt: Date(), updatedAt: Date())
+    ]
     
     // MARK: - Methods
     func addTransaction(_ transaction: Transaction) throws {
@@ -10,6 +17,7 @@ final actor TransactionsFileCache {
         if transactions.contains(where: { $0.id == transaction.id }) {
             throw TransactionsFileCacheError.transactionAlreadyExists("Ошибка при добавлении транзакции: транзакция с id = \(transaction.id) уже существует.")
         }
+        
         transactions.append(transaction)
     }
     
@@ -71,7 +79,10 @@ final actor TransactionsFileCache {
         
         let csvObjects: String = try await Task.detached(priority: .background) {
             let data = try Data(contentsOf: fileURL)
-            guard let str = String(data: data, encoding: .utf8) else {
+            guard let str = String(
+                data: data,
+                encoding: .utf8
+            ) else {
                 throw TransactionsFileCacheError.wrongFormat(
                     "Ошибка при загрузке данных из .csv-файла: невозможно прочитать \(fileURL) как UTF-8."
                 )

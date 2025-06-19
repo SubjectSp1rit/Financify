@@ -6,7 +6,7 @@ struct Transaction: Codable, Identifiable, Equatable {
     let categoryId: Int
     var amount: Decimal
     var transactionDate: Date
-    var comment: String
+    var comment: String?
     let createdAt: Date
     let updatedAt: Date
 }
