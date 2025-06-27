@@ -91,6 +91,9 @@ struct BalanceView: View {
                     }
                 }
             }
+            .refreshable {
+                await viewModel.refresh()
+            }
             .scrollDismissesKeyboard(.immediately)
             .listSectionSpacing(Constants.Style.sectionSpacing)
             .safeAreaInset(edge: .top, spacing: 0) { // Отступ сверху List
