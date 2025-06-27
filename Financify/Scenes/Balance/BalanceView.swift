@@ -134,11 +134,10 @@ struct BalanceView: View {
     }
     
     private func commitTotalEdit() {
-        let sanitized = editingTotalText
-            .replacingOccurrences(of: Constants.Logic.commaSeparator, with: Constants.Logic.dotSeparator)
-        if let value = Decimal(string: sanitized) {
+        let nonDigitCharacterSet = CharacterSet.decimalDigits.inverted
+        let digitsOnly = editingTotalText.components(separatedBy: nonDigitCharacterSet).joined()
+        let value = Decimal(string: digitsOnly) ?? 0
             viewModel.updateTotal(to: value)
-        }
         totalFieldIsFocused = false
         isEditing = false
     }

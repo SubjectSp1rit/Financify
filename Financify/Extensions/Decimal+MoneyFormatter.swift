@@ -3,7 +3,7 @@ import Foundation
 let decimalFormatter: NumberFormatter = {
     let f = NumberFormatter()
     f.numberStyle = .decimal
-    f.maximumFractionDigits = 2
+    f.maximumFractionDigits = 0
     f.groupingSeparator = " "
     f.locale = Locale(identifier: "ru_RU")
     return f
