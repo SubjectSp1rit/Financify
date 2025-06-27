@@ -25,7 +25,7 @@ struct BalanceView: View {
             .scrollDismissesKeyboard(.immediately)
             .listSectionSpacing(Constants.Style.sectionSpacing)
             .safeAreaInset(edge: .top, spacing: 0) { // Отступ сверху List
-                    Color.clear.frame(height: Constants.Style.topInsetHeight)
+                Color.clear.frame(height: Constants.Style.topInsetHeight)
             }
             .navigationTitle(Constants.Text.navigationTitle)
             .toolbar {
@@ -44,11 +44,6 @@ struct BalanceView: View {
             .task { await viewModel.refresh() }
         }
         .tint(Color(hex: Constants.Style.toolbarIconColorHex))
-        .onTapGesture {
-            if totalFieldIsFocused {
-                totalFieldIsFocused = false
-            }
-        }
     }
     
     private var balanceSection: some View {
@@ -106,9 +101,7 @@ struct BalanceView: View {
                     .animation(.easeInOut(duration: Constants.Style.animationDuration), value: isEditing)
                 
                 Button(action: {
-                    if isEditing {
-                        showCurrencyDialog = true
-                    }
+                    showCurrencyDialog = true
                 }) {
                     HStack {
                         Text(Constants.Text.currencyTitle).foregroundColor(.black)
@@ -123,6 +116,7 @@ struct BalanceView: View {
                     .padding(.horizontal)
                     .contentShape(Rectangle())
                 }
+                .disabled(!isEditing)
             }
             .listRowInsets(.init())
         }
@@ -150,7 +144,7 @@ struct BalanceView: View {
         let nonDigitCharacterSet = CharacterSet.decimalDigits.inverted
         let digitsOnly = editingTotalText.components(separatedBy: nonDigitCharacterSet).joined()
         let value = Decimal(string: digitsOnly) ?? 0
-            viewModel.updateTotal(to: value)
+        viewModel.updateTotal(to: value)
         totalFieldIsFocused = false
         isEditing = false
     }

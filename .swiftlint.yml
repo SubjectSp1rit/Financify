@@ -1,0 +1,13 @@
+disabled_rules:
+  - identifier_name
+  - legacy_constructor
+opt_in_rules:
+  - empty_enum_arguments
+excluded:
+  - Carthage
+  - Pods
+  - Sources/ExcludedFolder
+  - Sources/ExcludedFile.swift
+  - Sources/*/ExcludedFile.swift
+force_try: error
+strict: true

@@ -20,7 +20,6 @@ struct MainTabView: View {
                 .tabItem {
                     Image(Direction.outcome.tabIcon)
                         .renderingMode(.template)
-                    
                     Text(Direction.outcome.tabTitle) }
             TransactionsListView(direction: .income)
                 .tabItem {

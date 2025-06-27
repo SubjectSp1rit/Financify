@@ -70,6 +70,6 @@ fileprivate extension CGFloat {
             emoji: "🫚",
             isIncome: true
         )
-            
+        
     )
 }
