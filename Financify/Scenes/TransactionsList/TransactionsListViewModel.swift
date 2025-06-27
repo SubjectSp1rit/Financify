@@ -56,7 +56,6 @@ final class TransactionsListViewModel: ObservableObject {
         } catch {
             print(error.localizedDescription)
         }
-
     }
     
     func category(for transaction: Transaction) -> Category? {

@@ -22,18 +22,15 @@ struct TransactionsListView: View {
     var body: some View {
         NavigationStack {
             ZStack(alignment: .bottomTrailing) {
-                Color.pink.ignoresSafeArea()
-                
                 List {
                     Section {
                         SortCell(selectedOption: selectedSortOptionBinding)
+                            .redacted(reason: viewModel.isLoading ? .placeholder : [])
                         SummaryCell(total: viewModel.total, title: .summaryTitle)
+                            .redacted(reason: viewModel.isLoading ? .placeholder : [])
                     }
                     
-                    Section(header:
-                        Text(verbatim: .operationsHeader)
-                        .font(.system(size: .sectionHeaderFontSize, weight: .regular))
-                        .foregroundColor(.secondary))
+                    Section(String.operationsHeader)
                     {
                         ForEach(viewModel.transactions) { transaction in
                             NavigationLink(destination: EmptyView()) {

@@ -9,7 +9,7 @@ struct SummaryCell: View {
         HStack {
             Text(verbatim: title)
             Spacer()
-            Text(total.moneyFormatted)
+            Text("\(total.moneyFormatted) ₽")
                 .foregroundStyle(Color(hex: "#3C3C43"))
         }
     }

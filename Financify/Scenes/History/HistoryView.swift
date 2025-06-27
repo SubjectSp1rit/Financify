@@ -54,7 +54,7 @@ struct HistoryView: View {
                     HStack {
                         Text(verbatim: .datePickerStartTitle)
                         Spacer()
-                        DatePicker(String.datePickerStartTitle, selection: fromDateBinding, displayedComponents: .date)
+                        DatePicker("", selection: fromDateBinding, displayedComponents: .date)
                             .tint(.accent)
                             .labelsHidden()
                             .background(Color(hex: .datePickerHexColor)
@@ -63,7 +63,7 @@ struct HistoryView: View {
                     HStack {
                         Text(verbatim: .datePickerEndTitle)
                         Spacer()
-                        DatePicker(String.datePickerEndTitle, selection: toDateBinding, displayedComponents: .date)
+                        DatePicker("", selection: toDateBinding, displayedComponents: .date)
                             .tint(.accent)
                             .labelsHidden()
                             .background(Color(hex: .datePickerHexColor)
