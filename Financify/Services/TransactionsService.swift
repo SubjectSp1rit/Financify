@@ -9,6 +9,10 @@ final actor TransactionsService {
         return await cache.transactions.filter { period.contains($0.transactionDate) }
     }
     
+    func getAllTransactions() async throws -> [Transaction] {
+        return await cache.transactions
+    }
+    
     func addTransaction(_ transaction: Transaction) async throws {
         try await cache.addTransaction(transaction)
     }

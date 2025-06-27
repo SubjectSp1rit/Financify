@@ -28,7 +28,7 @@ struct MainTabView: View {
                         .renderingMode(.template)
                     
                     Text(Direction.income.tabTitle) }
-            Text("Счёт")
+            BalanceView()
                 .tabItem {
                     Image("calculator")
                         .renderingMode(.template)

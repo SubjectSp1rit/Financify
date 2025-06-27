@@ -5,6 +5,7 @@ struct TransactionCell: View {
     let transaction: Transaction
     let category: Category?
     
+    
     var body: some View {
         HStack(alignment: .center) {
             Text(String(category?.emoji ?? .unknownCategoryEmoji))
@@ -25,7 +26,7 @@ struct TransactionCell: View {
             
             Spacer()
             
-            Text("\(transaction.amount.moneyFormatted)")
+            Text("\(transaction.amount.moneyFormatted) ₽")
         }
     }
 }
