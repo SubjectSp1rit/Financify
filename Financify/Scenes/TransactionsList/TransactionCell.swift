@@ -4,7 +4,7 @@ struct TransactionCell: View {
     // MARK: - Properties
     let transaction: Transaction
     let category: Category?
-    
+    let currency: Currency
     
     var body: some View {
         HStack(alignment: .center) {
@@ -26,7 +26,7 @@ struct TransactionCell: View {
             
             Spacer()
             
-            Text("\(transaction.amount.moneyFormatted) ₽")
+            Text("\(transaction.amount.moneyFormatted) \(currency.rawValue)")
         }
     }
 }
@@ -49,27 +49,4 @@ fileprivate extension CGFloat {
     static let emojiFontSize: CGFloat = 20
     static let emojiPadding: CGFloat = 4
     static let commentFontSize: CGFloat = 13
-}
-
-// MARK: - Preview
-#Preview {
-    TransactionCell(
-        transaction: Transaction(
-            id: 0,
-            accountId: 0,
-            categoryId: 0,
-            amount: 1452,
-            transactionDate: Date(),
-            comment: nil,
-            createdAt: Date(),
-            updatedAt: Date()
-        ),
-        category: Category(
-            id: 0,
-            name: "Food",
-            emoji: "🫚",
-            isIncome: true
-        )
-        
-    )
 }

@@ -5,14 +5,17 @@ struct TransactionsListView: View {
     @StateObject private var viewModel: TransactionsListViewModel
     
     // MARK: - Lifecycle
-    init(direction: Direction,
-         categoriesService: CategoriesServiceLogic,
-         transactionsService: TransactionsServiceLogic
+    init(
+        direction: Direction,
+        categoriesService: CategoriesServiceLogic,
+        transactionsService: TransactionsServiceLogic,
+        bankAccountService: BankAccountServiceLogic
     ) {
         let vm = TransactionsListViewModel(
             direction: direction,
             categoriesService: categoriesService,
-            transactionsService: transactionsService
+            transactionsService: transactionsService,
+            bankAccountService: bankAccountService
         )
         _viewModel = StateObject(wrappedValue: vm)
     }
@@ -32,9 +35,15 @@ struct TransactionsListView: View {
             ZStack(alignment: .bottomTrailing) {
                 List {
                     Section {
-                        SortCell(selectedOption: selectedSortOptionBinding)
+                        SortCell(
+                            selectedOption: selectedSortOptionBinding
+                        )
                             .redacted(reason: viewModel.isLoading ? .placeholder : [])
-                        SummaryCell(total: viewModel.total, title: .summaryTitle)
+                        SummaryCell(
+                            total: viewModel.total,
+                            title: .summaryTitle,
+                            currency: viewModel.currency
+                        )
                             .redacted(reason: viewModel.isLoading ? .placeholder : [])
                     }
                     
@@ -44,7 +53,8 @@ struct TransactionsListView: View {
                             NavigationLink(destination: EmptyView()) {
                                 TransactionCell(
                                     transaction: transaction,
-                                    category: viewModel.category(for: transaction)
+                                    category: viewModel.category(for: transaction),
+                                    currency: viewModel.currency
                                 )
                             }
                         }
@@ -76,7 +86,8 @@ struct TransactionsListView: View {
                         destination: HistoryView(
                             direction: viewModel.direction,
                             categoriesService: viewModel.categoriesService,
-                            transactionsService: viewModel.transactionsService
+                            transactionsService: viewModel.transactionsService,
+                            bankAccountService: viewModel.bankAccountService
                         )
                     ) {
                         Image(systemName: .clockIconName)

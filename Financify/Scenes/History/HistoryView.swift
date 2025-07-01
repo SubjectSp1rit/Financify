@@ -43,14 +43,17 @@ struct HistoryView: View {
     }
     
     // MARK: - Lifecycle
-    init(direction: Direction,
-         categoriesService: CategoriesServiceLogic,
-         transactionsService: TransactionsServiceLogic
+    init(
+        direction: Direction,
+        categoriesService: CategoriesServiceLogic,
+        transactionsService: TransactionsServiceLogic,
+        bankAccountService: BankAccountServiceLogic
     ) {
         let vm = HistoryViewModel(
             direction: direction,
             categoriesService: categoriesService,
-            transactionsService: transactionsService
+            transactionsService: transactionsService,
+            bankAccountService: bankAccountService
         )
         _viewModel = StateObject(wrappedValue: vm)
     }
@@ -78,7 +81,11 @@ struct HistoryView: View {
                             .cornerRadius(.datePickerCornerRadius))
                     }
                     SortCell(selectedOption: selectedSortOptionBinding)
-                    SummaryCell(total: viewModel.total, title: .summaryCellTitle)
+                    SummaryCell(
+                        total: viewModel.total,
+                        title: .summaryCellTitle,
+                        currency: viewModel.currency
+                    )
                 }
                 
                 Section(header:
@@ -90,7 +97,8 @@ struct HistoryView: View {
                         NavigationLink(destination: EmptyView()) {
                             TransactionCell(
                                 transaction: transaction,
-                                category: viewModel.category(for: transaction)
+                                category: viewModel.category(for: transaction),
+                                currency: viewModel.currency
                             )
                         }
                     }
