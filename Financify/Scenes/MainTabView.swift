@@ -19,6 +19,7 @@ struct MainTabView: View {
     
     var body: some View {
         TabView {
+            // Расходы
             TransactionsListView(
                 direction: .outcome,
                 categoriesService: dependencies.categoryService,
@@ -26,9 +27,11 @@ struct MainTabView: View {
                 bankAccountService: dependencies.bankAccountService
             )
                 .tabItem {
-                    Image(Direction.outcome.tabIcon)
+                    Image(.downtrend)
                         .renderingMode(.template)
                     Text(Direction.outcome.tabTitle) }
+            
+            // Доходы
             TransactionsListView(
                 direction: .income,
                 categoriesService: dependencies.categoryService,
@@ -36,29 +39,35 @@ struct MainTabView: View {
                 bankAccountService: dependencies.bankAccountService
             )
                 .tabItem {
-                    Image(Direction.income.tabIcon)
+                    Image(.uptrend)
                         .renderingMode(.template)
                     
                     Text(Direction.income.tabTitle) }
+            
+            // Счет
             BalanceView(
                 bankAccountService: dependencies.bankAccountService,
                 categoriesService: dependencies.categoryService,
                 transactionsService: dependencies.transactionService
             )
                 .tabItem {
-                    Image("calculator")
+                    Image(.calculator)
                         .renderingMode(.template)
                     
                     Text("Счёт") }
+            
+            // Статьи
             Text("Статьи")
                 .tabItem {
-                    Image("categories")
+                    Image(.categories)
                         .renderingMode(.template)
                     
                     Text("Статьи") }
+            
+            // Настройки
             Text("Настройки")
                 .tabItem {
-                    Image("gear")
+                    Image(.gear)
                         .renderingMode(.template)
                     
                     Text("Настройки") }
