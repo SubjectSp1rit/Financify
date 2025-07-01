@@ -1,6 +1,13 @@
 import Foundation
 
-final actor BankAccountService {
+protocol BankAccountServiceLogic {
+    func primaryAccount() async throws -> BankAccount
+    func updatePrimaryAccount(with account: BankAccount) async throws -> Void
+    func updatePrimaryBalance(with balance: Decimal) async throws -> Void
+    func updatePrimaryCurrency(with currency: Currency) async throws -> Void
+}
+
+final actor BankAccountService: BankAccountServiceLogic {
     // MARK: - Properties
     static let shared = BankAccountService()
     
