@@ -3,8 +3,8 @@ import Foundation
 @MainActor
 final class HistoryViewModel: ObservableObject {
     // MARK: - Services
-    private let categoriesService: CategoriesService = CategoriesService()
-    private let transactionsService: TransactionsService = TransactionsService()
+    private let categoriesService: CategoriesServiceLogic
+    private let transactionsService: TransactionsServiceLogic
     
     // MARK: - Published
     @Published private(set) var categories: [Int:Category] = [:]
@@ -32,10 +32,16 @@ final class HistoryViewModel: ObservableObject {
     let calendar: Calendar = Calendar.current
     
     // MARK: - Lifecycle
-    init(direction: Direction) {
+    init(
+        direction: Direction,
+        categoriesService: CategoriesServiceLogic,
+        transactionsService: TransactionsServiceLogic
+    ) {
         self.direction = direction
         self.toDate = Date()
         self.fromDate =  calendar.date(byAdding: .month, value: -1, to: Date())!
+        self.categoriesService   = categoriesService
+        self.transactionsService = transactionsService
     }
     
     // MARK: - Methods

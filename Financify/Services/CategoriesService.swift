@@ -1,6 +1,11 @@
 import Foundation
 
-final actor CategoriesService {
+protocol CategoriesServiceLogic {
+    func getAllCategories() async throws -> [Category]
+    func getCategories(by direction: Direction) async throws -> [Category]
+}
+
+final actor CategoriesService: CategoriesServiceLogic {
     // MARK: - Methods
     func getAllCategories() async throws -> [Category] {
         try await categories()

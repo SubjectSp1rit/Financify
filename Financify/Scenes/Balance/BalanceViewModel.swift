@@ -3,8 +3,9 @@ import SwiftUI
 @MainActor
 final class BalanceViewModel: ObservableObject {
     // MARK: - Services
-    private let categoriesService: CategoriesService = CategoriesService()
-    private let transactionsService: TransactionsService = TransactionsService()
+    private let categoriesService: CategoriesServiceLogic
+    private let transactionsService: TransactionsServiceLogic
+    private let bankAccountService: BankAccountServiceLogic
     
     // MARK: - Published
     @Published private(set) var categories: [Int:Category] = [:]
@@ -15,34 +16,78 @@ final class BalanceViewModel: ObservableObject {
             // Если новое значение такое же, как и старое - игнорируем изменение
             guard oldValue != selectedCurrency else { return }
             
-            Task { await refresh() }
+            Task {
+                try? await bankAccountService.updatePrimaryCurrency(with: selectedCurrency)
+                await refreshBalance()
+            }
         }
     }
     
     // MARK: - Properties
     @Published private(set) var total: Decimal = 0
     
+    // MARK: - Lifecycle
+    init(
+        bankAccountService: BankAccountServiceLogic,
+        categoriesService: CategoriesServiceLogic,
+        transactionsService: TransactionsServiceLogic
+    ) {
+        self.bankAccountService = bankAccountService
+        self.categoriesService   = categoriesService
+        self.transactionsService = transactionsService
+    }
+    
     // MARK: - Methods
-    func refresh() async {
+    /// Загружает аккаунт + все транзакции, фильтрует по updatedAt и пересчитывает balance
+    func refreshBalance() async {
         isLoading = true
         defer { isLoading = false }
-        
+
         do {
             let cats = try await categoriesService.getAllCategories()
-            self.categories = Dictionary(uniqueKeysWithValues: cats.map { ($0.id, $0) })
-            
-            self.transactions = try await transactionsService.getAllTransactions()
-            
-            total = transactions.reduce(0) { acc, transaction in
-                guard let cat = categories[transaction.categoryId] else { return acc }
-                return cat.isIncome ? acc + transaction.amount : acc - transaction.amount
+            let categoryMap = Dictionary(uniqueKeysWithValues: cats.map { ($0.id, $0) })
+
+            let account = try await bankAccountService.primaryAccount()
+
+            let allTransactions = try await transactionsService.getAllTransactions()
+
+            // Оставляем только те транзакции, которые проведены после updatedAt
+            let relevant = allTransactions.filter { $0.transactionDate > account.updatedAt }
+
+            // Считаем актуальный баланс
+            let delta = relevant.reduce(Decimal(0)) { acc, tx in
+                guard let cat = categoryMap[tx.categoryId] else { return acc }
+                return cat.direction == .income
+                    ? acc + tx.amount
+                    : acc - tx.amount
             }
+
+            total = account.balance + delta
+            
+            if let curr = Currency(jsonTitle: account.currency) {
+                selectedCurrency = curr
+            }
+
         } catch {
             print(error.localizedDescription)
         }
     }
     
-    func updateTotal(to newTotal: Decimal) {
-        total = newTotal
+    func updatePrimaryBalance(to newBalance: Decimal) async {
+        do {
+            try await bankAccountService.updatePrimaryBalance(with: newBalance)
+            await refreshBalance()
+        } catch {
+            print(error.localizedDescription)
+        }
+    }
+    
+    func updatePrimaryCurrency(to newCurrency: Currency) async {
+        do {
+            try await bankAccountService.updatePrimaryCurrency(with: newCurrency)
+            selectedCurrency = newCurrency
+        } catch {
+            print(error.localizedDescription)
+        }
     }
 }

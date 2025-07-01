@@ -5,8 +5,16 @@ struct TransactionsListView: View {
     @StateObject private var viewModel: TransactionsListViewModel
     
     // MARK: - Lifecycle
-    init(direction: Direction) {
-        _viewModel = StateObject(wrappedValue: TransactionsListViewModel(direction: direction))
+    init(direction: Direction,
+         categoriesService: CategoriesServiceLogic,
+         transactionsService: TransactionsServiceLogic
+    ) {
+        let vm = TransactionsListViewModel(
+            direction: direction,
+            categoriesService: categoriesService,
+            transactionsService: transactionsService
+        )
+        _viewModel = StateObject(wrappedValue: vm)
     }
     
     private var selectedSortOptionBinding: Binding<SortOption> {
@@ -64,7 +72,13 @@ struct TransactionsListView: View {
             .navigationTitle(viewModel.direction.title)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    NavigationLink(destination: HistoryView(direction: viewModel.direction)) {
+                    NavigationLink(
+                        destination: HistoryView(
+                            direction: viewModel.direction,
+                            categoriesService: viewModel.categoriesService,
+                            transactionsService: viewModel.transactionsService
+                        )
+                    ) {
                         Image(systemName: .clockIconName)
                     }
                 }
@@ -89,9 +103,4 @@ fileprivate extension CGFloat {
     static let plusButtonIconSize: CGFloat = 24
     static let plusButtonFrameSize: CGFloat = 56
     static let plusButtonBottomPadding: CGFloat = 32
-}
-
-// MARK: - Preview
-#Preview {
-    TransactionsListView(direction: .outcome)
 }

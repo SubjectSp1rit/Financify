@@ -1,6 +1,14 @@
 import Foundation
 
-final actor TransactionsService {
+protocol TransactionsServiceLogic {
+    func getAllTransactions(byPeriod period: ClosedRange<Date>) async throws -> [Transaction]
+    func getAllTransactions() async throws -> [Transaction]
+    func addTransaction(_ transaction: Transaction) async throws
+    func updateTransaction(_ transaction: Transaction) async throws
+    func deleteTransaction(byId id: Int) async throws
+}
+
+final actor TransactionsService: TransactionsServiceLogic {
     // MARK: - Properties
     private let cache: TransactionsFileCache = TransactionsFileCache()
     
