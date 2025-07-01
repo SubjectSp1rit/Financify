@@ -20,4 +20,3 @@ struct SummaryCell: View {
 #Preview {
     SummaryCell(total: 534_424, title: "Всего")
 }
-

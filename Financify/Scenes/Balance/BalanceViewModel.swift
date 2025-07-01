@@ -5,6 +5,7 @@ final class BalanceViewModel: ObservableObject {
     // MARK: - Services
     private let categoriesService: CategoriesService = CategoriesService()
     private let transactionsService: TransactionsService = TransactionsService()
+    private let bankAccountService: BankAccountService = BankAccountService()
     
     // MARK: - Published
     @Published private(set) var categories: [Int:Category] = [:]
