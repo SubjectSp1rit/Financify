@@ -43,8 +43,16 @@ struct HistoryView: View {
     }
     
     // MARK: - Lifecycle
-    init(direction: Direction) {
-        _viewModel = StateObject(wrappedValue: HistoryViewModel(direction: direction))
+    init(direction: Direction,
+         categoriesService: CategoriesServiceLogic,
+         transactionsService: TransactionsServiceLogic
+    ) {
+        let vm = HistoryViewModel(
+            direction: direction,
+            categoriesService: categoriesService,
+            transactionsService: transactionsService
+        )
+        _viewModel = StateObject(wrappedValue: vm)
     }
     
     var body: some View {
@@ -122,9 +130,4 @@ fileprivate extension String {
     static let sectionHeaderText: String = "ОПЕРАЦИИ"
     static let datePickerHexColor: String = "#D4FAE6"
     static let toolbarDocumentIconName: String = "document"
-}
-
-// MARK: - Preview
-#Preview {
-    HistoryView(direction: .outcome)
 }

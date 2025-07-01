@@ -5,14 +5,23 @@ struct BalanceView: View {
     @State private var isEditing: Bool = false
     @State private var showCurrencyDialog: Bool = false
     @State private var isBalanceHidden: Bool = false
+    
     @StateObject private var viewModel: BalanceViewModel
     
     @State private var editingTotalText: String = ""
     @FocusState private var totalFieldIsFocused: Bool
     
     // MARK: - Lifecycle
-    init() {
-        _viewModel = StateObject(wrappedValue: BalanceViewModel())
+    init(bankAccountService: BankAccountServiceLogic,
+         categoriesService: CategoriesServiceLogic,
+         transactionsService: TransactionsServiceLogic
+    ) {
+        let vm = BalanceViewModel(
+            bankAccountService: bankAccountService,
+            categoriesService: categoriesService,
+            transactionsService: transactionsService
+        )
+        _viewModel = StateObject(wrappedValue: vm)
     }
     
     var body: some View {
@@ -181,9 +190,4 @@ fileprivate enum Constants {
         static let commaSeparator = ","
         static let dotSeparator = "."
     }
-}
-
-// MARK: - Preview
-#Preview {
-    BalanceView()
 }

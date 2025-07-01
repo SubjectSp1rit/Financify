@@ -3,8 +3,8 @@ import SwiftUI
 @MainActor
 final class TransactionsListViewModel: ObservableObject {
     // MARK: - Services
-    private let categoriesService: CategoriesService = CategoriesService()
-    private let transactionsService: TransactionsService = TransactionsService()
+    let categoriesService: CategoriesServiceLogic
+    let transactionsService: TransactionsServiceLogic
     
     // MARK: - Published
     @Published private(set) var categories: [Int:Category] = [:]
@@ -20,8 +20,13 @@ final class TransactionsListViewModel: ObservableObject {
     let direction: Direction
     
     // MARK: - Lifecycle
-    init(direction: Direction) {
+    init(direction: Direction,
+         categoriesService: CategoriesServiceLogic,
+         transactionsService: TransactionsServiceLogic
+    ) {
         self.direction = direction
+        self.categoriesService = categoriesService
+        self.transactionsService = transactionsService
     }
     
     // MARK: - Methods

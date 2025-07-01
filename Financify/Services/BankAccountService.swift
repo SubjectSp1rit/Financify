@@ -8,9 +8,6 @@ protocol BankAccountServiceLogic {
 }
 
 final actor BankAccountService: BankAccountServiceLogic {
-    // MARK: - Properties
-    static let shared = BankAccountService()
-    
     private var accounts: [BankAccount] = [
         BankAccount(
             id: 0,
@@ -31,9 +28,6 @@ final actor BankAccountService: BankAccountServiceLogic {
             updatedAt: Date()
         )
     ]
-    
-    // MARK: - Lifecycle
-    private init() { }
     
     // MARK: - Methods
     func primaryAccount() async throws -> BankAccount {

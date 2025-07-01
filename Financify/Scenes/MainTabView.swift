@@ -1,6 +1,9 @@
 import SwiftUI
 
 struct MainTabView: View {
+    // MARK: - Properties
+    @EnvironmentObject private var dependencies: AppDependencies
+    
     // MARK: - Lifecycle
     init() {
         // Фон таббара
@@ -16,18 +19,30 @@ struct MainTabView: View {
     
     var body: some View {
         TabView {
-            TransactionsListView(direction: .outcome)
+            TransactionsListView(
+                direction: .outcome,
+                categoriesService: dependencies.categoryService,
+                transactionsService: dependencies.transactionService
+            )
                 .tabItem {
                     Image(Direction.outcome.tabIcon)
                         .renderingMode(.template)
                     Text(Direction.outcome.tabTitle) }
-            TransactionsListView(direction: .income)
+            TransactionsListView(
+                direction: .income,
+                categoriesService: dependencies.categoryService,
+                transactionsService: dependencies.transactionService
+            )
                 .tabItem {
                     Image(Direction.income.tabIcon)
                         .renderingMode(.template)
                     
                     Text(Direction.income.tabTitle) }
-            BalanceView()
+            BalanceView(
+                bankAccountService: dependencies.bankAccountService,
+                categoriesService: dependencies.categoryService,
+                transactionsService: dependencies.transactionService
+            )
                 .tabItem {
                     Image("calculator")
                         .renderingMode(.template)
@@ -53,4 +68,5 @@ struct MainTabView: View {
 // MARK: - Preview
 #Preview {
     MainTabView()
+        .environmentObject(AppDependencies())
 }

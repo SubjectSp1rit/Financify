@@ -3,9 +3,9 @@ import SwiftUI
 @MainActor
 final class BalanceViewModel: ObservableObject {
     // MARK: - Services
-    private let categoriesService: CategoriesService = CategoriesService()
-    private let transactionsService: TransactionsService = TransactionsService()
-    private let bankAccountService: BankAccountService = BankAccountService()
+    private let categoriesService: CategoriesServiceLogic
+    private let transactionsService: TransactionsServiceLogic
+    private let bankAccountService: BankAccountServiceLogic
     
     // MARK: - Published
     @Published private(set) var categories: [Int:Category] = [:]
@@ -22,6 +22,17 @@ final class BalanceViewModel: ObservableObject {
     
     // MARK: - Properties
     @Published private(set) var total: Decimal = 0
+    
+    // MARK: - Lifecycle
+    init(
+        bankAccountService: BankAccountServiceLogic,
+        categoriesService: CategoriesServiceLogic,
+        transactionsService: TransactionsServiceLogic
+    ) {
+        self.bankAccountService = bankAccountService
+        self.categoriesService   = categoriesService
+        self.transactionsService = transactionsService
+    }
     
     // MARK: - Methods
     func refresh() async {
