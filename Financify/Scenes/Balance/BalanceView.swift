@@ -30,7 +30,7 @@ struct BalanceView: View {
                 balanceSection
                 currencySection
             }
-            .refreshable {  await viewModel.refresh() }
+            .refreshable {  await viewModel.refreshBalance() }
             .scrollDismissesKeyboard(.immediately)
             .listSectionSpacing(Constants.Style.sectionSpacing)
             .safeAreaInset(edge: .top, spacing: 0) { // Отступ сверху List
@@ -50,7 +50,7 @@ struct BalanceView: View {
                     }
                 }
             }
-            .task { await viewModel.refresh() }
+            .task { await viewModel.refreshBalance() }
         }
         .tint(Color(hex: Constants.Style.toolbarIconColorHex))
     }
@@ -150,13 +150,19 @@ struct BalanceView: View {
     }
     
     private func commitTotalEdit() {
-        let nonDigitCharacterSet = CharacterSet.decimalDigits.inverted
-        let digitsOnly = editingTotalText.components(separatedBy: nonDigitCharacterSet).joined()
-        let value = Decimal(string: digitsOnly) ?? 0
-        viewModel.updateTotal(to: value)
+        let text = editingTotalText
+        let isNegative = text.first == "-"
+        let digitsAndDot = text.filter { $0.isWholeNumber }
+        let finalString = isNegative ? "-" + digitsAndDot : digitsAndDot
+        let value = Decimal(string: finalString) ?? 0
+
+        Task {
+            await viewModel.updatePrimaryBalance(to: value)
+        }
         totalFieldIsFocused = false
         isEditing = false
     }
+
 }
 
 // MARK: - Constants

@@ -18,4 +18,13 @@ enum Currency: String, CaseIterable {
         case .eur: return "EUR"
         }
     }
+    
+    init?(jsonTitle: String) {
+        switch jsonTitle {
+        case Currency.rub.jsonTitle: self = .rub
+        case Currency.usd.jsonTitle: self = .usd
+        case Currency.eur.jsonTitle: self = .eur
+        default: fatalError("Неподдерживаемая валюта \(jsonTitle)")
+        }
+    }
 }

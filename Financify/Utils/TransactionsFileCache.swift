@@ -8,7 +8,8 @@ final actor TransactionsFileCache {
         Transaction(id: 2, accountId: 0, categoryId: 3, amount: 100, transactionDate: Date(), createdAt: Date(), updatedAt: Date()),
         Transaction(id: 3, accountId: 0, categoryId: 9, amount: 1000, transactionDate: Calendar.current.date(byAdding: .month, value: -1, to: Date())!, comment: "ласт додеп",createdAt: Date(), updatedAt: Date()),
         Transaction(id: 4, accountId: 0, categoryId: 9, amount: 2000, transactionDate: Calendar.current.date(byAdding: .day, value: -1, to: Date())!, comment: "длинное описаниеееееееееееееееее", createdAt: Date(), updatedAt: Date()),
-        Transaction(id: 5, accountId: 0, categoryId: 9, amount: 3000, transactionDate: Date(), createdAt: Date(), updatedAt: Date())
+        Transaction(id: 5, accountId: 0, categoryId: 9, amount: 3000, transactionDate: Date(), createdAt: Date(), updatedAt: Date()),
+        Transaction(id: 5, accountId: 0, categoryId: 9, amount: 8000, transactionDate: Calendar.current.date(byAdding: .month, value: 1, to: Date())!, createdAt: Date(), updatedAt: Date())
     ]
     
     // MARK: - Methods

@@ -16,7 +16,7 @@ final actor BankAccountService: BankAccountServiceLogic {
             balance: 1337.00,
             currency: "RUB",
             createdAt: Date(),
-            updatedAt: Date()
+            updatedAt: Date().addingTimeInterval(-60 * 60 * 24 * 180) // 180 дней назад
         ),
         BankAccount(
             id: 1,
@@ -51,6 +51,7 @@ final actor BankAccountService: BankAccountServiceLogic {
             throw BankAccountServicesError.accountNotExists("Ошибка изменения баланса основного счета: отсутствует банковский счет")
         }
         
+        let now = Date()
         let newAccount = BankAccount(
             id: primaryAccount.id,
             userId: primaryAccount.userId,
@@ -58,7 +59,7 @@ final actor BankAccountService: BankAccountServiceLogic {
             balance: balance,
             currency: primaryAccount.currency,
             createdAt: primaryAccount.createdAt,
-            updatedAt: primaryAccount.updatedAt
+            updatedAt: now
         )
         
         try await updatePrimaryAccount(with: newAccount)
