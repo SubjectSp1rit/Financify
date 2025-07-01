@@ -22,7 +22,8 @@ struct MainTabView: View {
             TransactionsListView(
                 direction: .outcome,
                 categoriesService: dependencies.categoryService,
-                transactionsService: dependencies.transactionService
+                transactionsService: dependencies.transactionService,
+                bankAccountService: dependencies.bankAccountService
             )
                 .tabItem {
                     Image(Direction.outcome.tabIcon)
@@ -31,7 +32,8 @@ struct MainTabView: View {
             TransactionsListView(
                 direction: .income,
                 categoriesService: dependencies.categoryService,
-                transactionsService: dependencies.transactionService
+                transactionsService: dependencies.transactionService,
+                bankAccountService: dependencies.bankAccountService
             )
                 .tabItem {
                     Image(Direction.income.tabIcon)

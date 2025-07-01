@@ -64,9 +64,7 @@ final class BalanceViewModel: ObservableObject {
 
             total = account.balance + delta
             
-            if let curr = Currency(jsonTitle: account.currency) {
-                selectedCurrency = curr
-            }
+            selectedCurrency = Currency(jsonTitle: account.currency)
 
         } catch {
             print(error.localizedDescription)

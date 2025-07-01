@@ -5,6 +5,7 @@ final class HistoryViewModel: ObservableObject {
     // MARK: - Services
     private let categoriesService: CategoriesServiceLogic
     private let transactionsService: TransactionsServiceLogic
+    private let bankAccountService: BankAccountServiceLogic
     
     // MARK: - Published
     @Published private(set) var categories: [Int:Category] = [:]
@@ -13,6 +14,7 @@ final class HistoryViewModel: ObservableObject {
     @Published var fromDate: Date
     @Published var toDate: Date
     @Published var selectedSortOption: SortOption = .newestFirst
+    @Published var currency: Currency = .rub
     
     // MARK: - Properties
     var total: Decimal {
@@ -35,45 +37,47 @@ final class HistoryViewModel: ObservableObject {
     init(
         direction: Direction,
         categoriesService: CategoriesServiceLogic,
-        transactionsService: TransactionsServiceLogic
+        transactionsService: TransactionsServiceLogic,
+        bankAccountService: BankAccountServiceLogic
     ) {
         self.direction = direction
         self.toDate = Date()
         self.fromDate =  calendar.date(byAdding: .month, value: -1, to: Date())!
         self.categoriesService   = categoriesService
         self.transactionsService = transactionsService
+        self.bankAccountService = bankAccountService
     }
     
     // MARK: - Methods
     func refresh() async {
         isLoading = true
         defer { isLoading = false }
-        
-        do {
-            let categories = try await categoriesService.getCategories(by: direction)
-            self.categories = Dictionary(uniqueKeysWithValues: categories.map { ($0.id, $0) })
 
-            let transactionsByPeriod = try await transactionsService.getAllTransactions(byPeriod: startOfDay...endOfDay)
-            
-            transactions = transactionsByPeriod.filter { transaction in
-                guard let category = self.categories[transaction.categoryId] else { return false }
-                return direction == .income ? category.isIncome : !category.isIncome
+        do {
+            let account = try await bankAccountService.primaryAccount()
+            currency = Currency(jsonTitle: account.currency)
+
+            let cats = try await categoriesService.getCategories(by: direction)
+            categories = Dictionary(uniqueKeysWithValues: cats.map { ($0.id, $0) })
+
+            let startOfDay = calendar.startOfDay(for: fromDate)
+            let endOfDay   = calendar.date(byAdding: DateComponents(day:1, second:-1), to: calendar.startOfDay(for: toDate))!
+
+            let txByPeriod = try await transactionsService.getAllTransactions(byPeriod: startOfDay...endOfDay)
+            transactions = txByPeriod.filter {
+                guard let cat = categories[$0.categoryId] else { return false }
+                return direction == .income ? cat.isIncome : !cat.isIncome
             }
-            
+
             switch selectedSortOption {
-            case .newestFirst:
-                transactions = transactions.sorted { $0.transactionDate > $1.transactionDate }
-            case .oldestFirst:
-                transactions = transactions.sorted { $0.transactionDate < $1.transactionDate }
-            case .amountDescending:
-                transactions = transactions.sorted { $0.amount > $1.amount }
-            case .amountAscending:
-                transactions = transactions.sorted { $0.amount < $1.amount }
+            case .newestFirst:      transactions.sort { $0.transactionDate > $1.transactionDate }
+            case .oldestFirst:      transactions.sort { $0.transactionDate < $1.transactionDate }
+            case .amountDescending: transactions.sort { $0.amount > $1.amount }
+            case .amountAscending:  transactions.sort { $0.amount < $1.amount }
             }
         } catch {
             print(error.localizedDescription)
         }
-
     }
     
     func category(for transaction: Transaction) -> Category? {

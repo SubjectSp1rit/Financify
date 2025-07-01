@@ -19,7 +19,7 @@ enum Currency: String, CaseIterable {
         }
     }
     
-    init?(jsonTitle: String) {
+    init(jsonTitle: String) {
         switch jsonTitle {
         case Currency.rub.jsonTitle: self = .rub
         case Currency.usd.jsonTitle: self = .usd
