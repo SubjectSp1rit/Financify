@@ -1,7 +1,7 @@
 import Foundation
 
 protocol TransactionsServiceLogic {
-    func getAllTransactions(byPeriod period: ClosedRange<Date>) async throws -> [Transaction]
+    func getAllTransactions(_ filter: (Transaction) -> Bool) async throws -> [Transaction]
     func getAllTransactions() async throws -> [Transaction]
     func addTransaction(_ transaction: Transaction) async throws
     func updateTransaction(_ transaction: Transaction) async throws
@@ -13,8 +13,8 @@ final actor TransactionsService: TransactionsServiceLogic {
     private let cache: TransactionsFileCache = TransactionsFileCache()
     
     // MARK: - Methods
-    func getAllTransactions(byPeriod period: ClosedRange<Date>) async throws -> [Transaction] {
-        return await cache.transactions.filter { period.contains($0.transactionDate) }
+    func getAllTransactions(_ filter: (Transaction) -> Bool) async throws -> [Transaction] {
+        return await cache.transactions.filter(filter)
     }
     
     func getAllTransactions() async throws -> [Transaction] {

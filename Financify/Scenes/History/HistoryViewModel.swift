@@ -89,8 +89,11 @@ final class HistoryViewModel: ObservableObject {
             let startOfDay = calendar.startOfDay(for: fromDate)
             let endOfDay   = calendar.date(byAdding: DateComponents(day:1, second:-1), to: calendar.startOfDay(for: toDate))!
 
-            let txByPeriod = try await transactionsService.getAllTransactions(byPeriod: startOfDay...endOfDay)
-            transactions = txByPeriod.filter {
+            let transactionByPeriod = try await transactionsService.getAllTransactions {
+                (startOfDay...endOfDay).contains($0.transactionDate)
+            }
+            
+            transactions = transactionByPeriod.filter {
                 guard let cat = categories[$0.categoryId] else { return false }
                 return direction == .income ? cat.isIncome : !cat.isIncome
             }
