@@ -4,44 +4,6 @@ struct HistoryView: View {
     // MARK: - Properties
     @StateObject private var viewModel: HistoryViewModel
     
-    private var fromDateBinding: Binding<Date> {
-        Binding<Date>(
-            get: { viewModel.fromDate },
-            set: { newFrom in
-                // если выбрано позже toDate — устанавливаем toDate
-                if newFrom > viewModel.toDate {
-                    viewModel.toDate = newFrom
-                }
-                viewModel.fromDate = newFrom
-                Task { await viewModel.refresh() }
-            }
-        )
-    }
-    
-    private var toDateBinding: Binding<Date> {
-        Binding<Date>(
-            get: { viewModel.toDate },
-            set: { newTo in
-                // если выбрано раньше fromDate — устанавливаем fromDate
-                if newTo < viewModel.fromDate {
-                    viewModel.fromDate = newTo
-                }
-                viewModel.toDate = newTo
-                Task { await viewModel.refresh() }
-            }
-        )
-    }
-    
-    private var selectedSortOptionBinding: Binding<SortOption> {
-        Binding<SortOption>(
-            get: { viewModel.selectedSortOption },
-            set: { newOption in
-                viewModel.selectedSortOption = newOption
-                Task { await viewModel.refresh() }
-            }
-        )
-    }
-    
     // MARK: - Lifecycle
     init(
         direction: Direction,
@@ -65,7 +27,7 @@ struct HistoryView: View {
                     HStack {
                         Text(verbatim: .datePickerStartTitle)
                         Spacer()
-                        DatePicker("", selection: fromDateBinding, displayedComponents: .date)
+                        DatePicker("", selection: $viewModel.fromDate, displayedComponents: .date)
                             .tint(.accent)
                             .labelsHidden()
                             .background(Color(hex: .datePickerHexColor)
@@ -74,13 +36,13 @@ struct HistoryView: View {
                     HStack {
                         Text(verbatim: .datePickerEndTitle)
                         Spacer()
-                        DatePicker("", selection: toDateBinding, displayedComponents: .date)
+                        DatePicker("", selection: $viewModel.toDate, displayedComponents: .date)
                             .tint(.accent)
                             .labelsHidden()
                             .background(Color(hex: .datePickerHexColor)
                             .cornerRadius(.datePickerCornerRadius))
                     }
-                    SortCell(selectedOption: selectedSortOptionBinding)
+                    SortCell(selectedOption: $viewModel.selectedSortOption)
                     SummaryCell(
                         total: viewModel.total,
                         title: .summaryCellTitle,

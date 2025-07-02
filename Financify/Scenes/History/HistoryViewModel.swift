@@ -11,9 +11,35 @@ final class HistoryViewModel: ObservableObject {
     @Published private(set) var categories: [Int:Category] = [:]
     @Published private(set) var transactions: [Transaction] = []
     @Published var isLoading: Bool = false
-    @Published var fromDate: Date
-    @Published var toDate: Date
-    @Published var selectedSortOption: SortOption = .newestFirst
+    
+    @Published var fromDate: Date {
+        willSet {
+            if newValue > toDate {
+                toDate = newValue
+            }
+        }
+        didSet {
+            Task { await refresh() }
+        }
+    }
+    
+    @Published var toDate: Date {
+        willSet {
+            if newValue < fromDate {
+                fromDate = newValue
+            }
+        }
+        didSet {
+            Task { await refresh() }
+        }
+    }
+    
+    @Published var selectedSortOption: SortOption = .newestFirst {
+        didSet {
+            Task { await refresh() }
+        }
+    }
+    
     @Published var currency: Currency = .rub
     
     // MARK: - Properties

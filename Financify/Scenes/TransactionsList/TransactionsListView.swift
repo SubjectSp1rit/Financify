@@ -20,23 +20,13 @@ struct TransactionsListView: View {
         _viewModel = StateObject(wrappedValue: vm)
     }
     
-    private var selectedSortOptionBinding: Binding<SortOption> {
-        Binding<SortOption>(
-            get: { viewModel.selectedSortOption },
-            set: { newOption in
-                viewModel.selectedSortOption = newOption
-                Task { await viewModel.refresh() }
-            }
-        )
-    }
-    
     var body: some View {
         NavigationStack {
             ZStack(alignment: .bottomTrailing) {
                 List {
                     Section {
                         SortCell(
-                            selectedOption: selectedSortOptionBinding
+                            selectedOption: $viewModel.selectedSortOption
                         )
                             .redacted(reason: viewModel.isLoading ? .placeholder : [])
                         SummaryCell(

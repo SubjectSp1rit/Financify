@@ -11,7 +11,13 @@ final class TransactionsListViewModel: ObservableObject {
     @Published private(set) var categories: [Int:Category] = [:]
     @Published private(set) var transactions: [Transaction] = []
     @Published var isLoading: Bool = false
-    @Published var selectedSortOption: SortOption = .newestFirst
+    
+    @Published var selectedSortOption: SortOption = .newestFirst {
+        didSet {
+            Task { await refresh() }
+        }
+    }
+    
     @Published var currency: Currency = .rub
     
     // MARK: - Properties
