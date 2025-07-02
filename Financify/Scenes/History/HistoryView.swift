@@ -21,52 +21,51 @@ struct HistoryView: View {
     }
     
     var body: some View {
-        ZStack {
-            List {
-                Section {
-                    HStack {
-                        Text(verbatim: .datePickerStartTitle)
-                        Spacer()
-                        DatePicker("", selection: $viewModel.fromDate, displayedComponents: .date)
-                            .tint(.accent)
-                            .labelsHidden()
-                            .background(Color(hex: .datePickerHexColor)
-                            .cornerRadius(.datePickerCornerRadius))
-                    }
-                    HStack {
-                        Text(verbatim: .datePickerEndTitle)
-                        Spacer()
-                        DatePicker("", selection: $viewModel.toDate, displayedComponents: .date)
-                            .tint(.accent)
-                            .labelsHidden()
-                            .background(Color(hex: .datePickerHexColor)
-                            .cornerRadius(.datePickerCornerRadius))
-                    }
-                    SortCell(selectedOption: $viewModel.selectedSortOption)
-                    SummaryCell(
-                        total: viewModel.total,
-                        title: .summaryCellTitle,
-                        currency: viewModel.currency
-                    )
+        List {
+            Section {
+                HStack {
+                    Text(verbatim: .datePickerStartTitle)
+                    Spacer()
+                    DatePicker("", selection: $viewModel.fromDate, displayedComponents: .date)
+                        .tint(.accent)
+                        .labelsHidden()
+                        .background(Color(hex: .datePickerHexColor)
+                        .cornerRadius(.datePickerCornerRadius))
                 }
-                
-                Section(header:
-                            Text(verbatim: .sectionHeaderText)
-                    .font(.system(size: .sectionHeaderFontSize, weight: .regular))
-                    .foregroundColor(.secondary))
-                {
-                    ForEach(viewModel.transactions) { transaction in
-                        NavigationLink(destination: EmptyView()) {
-                            TransactionCell(
-                                transaction: transaction,
-                                category: viewModel.category(for: transaction),
-                                currency: viewModel.currency
-                            )
-                        }
+                HStack {
+                    Text(verbatim: .datePickerEndTitle)
+                    Spacer()
+                    DatePicker("", selection: $viewModel.toDate, displayedComponents: .date)
+                        .tint(.accent)
+                        .labelsHidden()
+                        .background(Color(hex: .datePickerHexColor)
+                        .cornerRadius(.datePickerCornerRadius))
+                }
+                SortCell(selectedOption: $viewModel.selectedSortOption)
+                SummaryCell(
+                    total: viewModel.total,
+                    title: .summaryCellTitle,
+                    currency: viewModel.currency
+                )
+            }
+            
+            Section(header:
+                        Text(verbatim: .sectionHeaderText)
+                .font(.system(size: .sectionHeaderFontSize, weight: .regular))
+                .foregroundColor(.secondary))
+            {
+                ForEach(viewModel.transactions) { transaction in
+                    NavigationLink(destination: EmptyView()) {
+                        TransactionCell(
+                            transaction: transaction,
+                            category: viewModel.category(for: transaction),
+                            currency: viewModel.currency
+                        )
                     }
                 }
             }
-            
+        }
+        .overlay(alignment: .center) {
             // Пока данные грузятся - показываем анимацию загрузки по центру экрана
             if viewModel.isLoading && viewModel.transactions.isEmpty {
                 LoadingAnimation()

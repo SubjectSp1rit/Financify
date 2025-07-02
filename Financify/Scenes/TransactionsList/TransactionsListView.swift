@@ -22,40 +22,40 @@ struct TransactionsListView: View {
     
     var body: some View {
         NavigationStack {
-            ZStack(alignment: .bottomTrailing) {
-                List {
-                    Section {
-                        SortCell(
-                            selectedOption: $viewModel.selectedSortOption
-                        )
-                            .redacted(reason: viewModel.isLoading ? .placeholder : [])
-                        SummaryCell(
-                            total: viewModel.total,
-                            title: .summaryTitle,
-                            currency: viewModel.currency
-                        )
-                            .redacted(reason: viewModel.isLoading ? .placeholder : [])
-                    }
-                    
-                    Section(String.operationsHeader)
-                    {
-                        ForEach(viewModel.transactions) { transaction in
-                            NavigationLink(destination: EmptyView()) {
-                                TransactionCell(
-                                    transaction: transaction,
-                                    category: viewModel.category(for: transaction),
-                                    currency: viewModel.currency
-                                )
-                            }
+            List {
+                Section {
+                    SortCell(
+                        selectedOption: $viewModel.selectedSortOption
+                    )
+                        .redacted(reason: viewModel.isLoading ? .placeholder : [])
+                    SummaryCell(
+                        total: viewModel.total,
+                        title: .summaryTitle,
+                        currency: viewModel.currency
+                    )
+                        .redacted(reason: viewModel.isLoading ? .placeholder : [])
+                }
+                
+                Section(String.operationsHeader)
+                {
+                    ForEach(viewModel.transactions) { transaction in
+                        NavigationLink(destination: EmptyView()) {
+                            TransactionCell(
+                                transaction: transaction,
+                                category: viewModel.category(for: transaction),
+                                currency: viewModel.currency
+                            )
                         }
                     }
                 }
-                
+            }
+            .overlay(alignment: .center) {
                 // Пока данные грузятся - показываем анимацию загрузки по центру экрана
                 if viewModel.isLoading && viewModel.transactions.isEmpty {
                     LoadingAnimation()
                 }
-                
+            }
+            .overlay(alignment: .bottomTrailing) {
                 Button(action: {
                     
                 }) {
@@ -68,7 +68,7 @@ struct TransactionsListView: View {
                 }
                 .padding(.horizontal)
                 .padding(.bottom, .plusButtonBottomPadding)
-            }
+            }  
             .navigationTitle(viewModel.direction.title)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
