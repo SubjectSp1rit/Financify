@@ -23,24 +23,20 @@ struct HistoryView: View {
     var body: some View {
         List {
             Section {
-                HStack {
-                    Text(verbatim: .datePickerStartTitle)
-                    Spacer()
-                    DatePicker("", selection: $viewModel.fromDate, displayedComponents: .date)
-                        .tint(.accent)
-                        .labelsHidden()
-                        .background(Color(hex: .datePickerHexColor)
-                        .cornerRadius(.datePickerCornerRadius))
-                }
-                HStack {
-                    Text(verbatim: .datePickerEndTitle)
-                    Spacer()
-                    DatePicker("", selection: $viewModel.toDate, displayedComponents: .date)
-                        .tint(.accent)
-                        .labelsHidden()
-                        .background(Color(hex: .datePickerHexColor)
-                        .cornerRadius(.datePickerCornerRadius))
-                }
+                DatePicker(
+                    String.datePickerStartTitle,
+                    selection: $viewModel.fromDate,
+                    displayedComponents: .date
+                )
+                .datePickerStyle(HistoryDatePickerStyle())
+                
+                DatePicker(
+                    String.datePickerEndTitle,
+                    selection: $viewModel.toDate,
+                    displayedComponents: .date
+                )
+                .datePickerStyle(HistoryDatePickerStyle())
+                
                 SortCell(selectedOption: $viewModel.selectedSortOption)
                 SummaryCell(
                     total: viewModel.total,
@@ -99,4 +95,23 @@ fileprivate extension String {
     static let sectionHeaderText: String = "ОПЕРАЦИИ"
     static let datePickerHexColor: String = "#D4FAE6"
     static let toolbarDocumentIconName: String = "document"
+}
+
+// MARK: - HistoryDatePickerStyle
+struct HistoryDatePickerStyle: DatePickerStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        HStack {
+            configuration.label
+            Spacer()
+            DatePicker(
+                "",
+                selection: configuration.$selection,
+                displayedComponents: configuration.displayedComponents
+            )
+                .tint(.accent)
+                .labelsHidden()
+                .background(Color(hex: .datePickerHexColor)
+                .cornerRadius(.datePickerCornerRadius))
+        }
+    }
 }
