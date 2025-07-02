@@ -28,6 +28,7 @@ struct TransactionCell: View {
             
             Text("\(transaction.amount.moneyFormatted) \(currency.rawValue)")
         }
+        .frame(minHeight: .transactionRowMinHeight, alignment: .center)
     }
 }
 
@@ -49,4 +50,5 @@ fileprivate extension CGFloat {
     static let emojiFontSize: CGFloat = 20
     static let emojiPadding: CGFloat = 4
     static let commentFontSize: CGFloat = 13
+    static let transactionRowMinHeight: CGFloat = 40
 }

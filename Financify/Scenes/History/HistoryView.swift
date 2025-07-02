@@ -61,6 +61,7 @@ struct HistoryView: View {
                 }
             }
         }
+        .animation(.easeInOut(duration: 0.3), value: viewModel.transactions)
         .overlay(alignment: .center) {
             // Пока данные грузятся - показываем анимацию загрузки по центру экрана
             if viewModel.isLoading && viewModel.transactions.isEmpty {
