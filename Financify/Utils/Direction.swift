@@ -23,13 +23,4 @@ enum Direction: String, Codable {
             return "Расходы"
         }
     }
-    
-    var tabIcon: String {
-        switch self {
-        case .income:
-            return "uptrend"
-        case .outcome:
-            return "downtrend"
-        }
-    }
 }

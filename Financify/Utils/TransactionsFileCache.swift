@@ -33,7 +33,7 @@ final actor TransactionsFileCache {
     
     func deleteTransaction(byId id: Int) throws {
         // Бросаем ошибку если транзакции не существует
-        if !transactions.contains(where:  { $0.id == id }) {
+        guard transactions.contains(where:  { $0.id == id }) else {
             throw TransactionsFileCacheError.transactionNotExists("Ошибка при удалении транзакции: транзакции с id = \(id) не существует.")
         }
         

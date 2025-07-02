@@ -11,7 +11,13 @@ final class TransactionsListViewModel: ObservableObject {
     @Published private(set) var categories: [Int:Category] = [:]
     @Published private(set) var transactions: [Transaction] = []
     @Published var isLoading: Bool = false
-    @Published var selectedSortOption: SortOption = .newestFirst
+    
+    @Published var selectedSortOption: SortOption = .newestFirst {
+        didSet {
+            Task { await refresh() }
+        }
+    }
+    
     @Published var currency: Currency = .rub
     
     // MARK: - Properties
@@ -46,11 +52,14 @@ final class TransactionsListViewModel: ObservableObject {
             categories = Dictionary(uniqueKeysWithValues: cats.map { ($0.id, $0) })
 
             let calendar = Calendar.current
-            let startDay = calendar.startOfDay(for: Date())
-            let endDay   = calendar.date(byAdding: .day, value: 1, to: startDay)!
+            let startOfDay = calendar.startOfDay(for: Date())
+            let endOfDay   = calendar.date(byAdding: .day, value: 1, to: startOfDay)!
                                 .addingTimeInterval(-1)
 
-            let allToday = try await transactionsService.getAllTransactions(byPeriod: startDay...endDay)
+            let allToday = try await transactionsService.getAllTransactions {
+                (startOfDay...endOfDay).contains($0.transactionDate)
+            }
+            
             transactions = allToday.filter {
                 guard let cat = categories[$0.categoryId] else { return false }
                 return direction == .income ? cat.isIncome : !cat.isIncome

@@ -5,14 +5,26 @@ struct SortCell: View {
     
     var body: some View {
         HStack {
-            Text(verbatim: .sortTitle)
+            Text(String.sortTitle)
             Spacer()
-            Picker("", selection: $selectedOption) {
+            Menu {
                 ForEach(SortOption.allCases) { option in
-                    Text(option.rawValue).tag(option)
+                    Button {
+                        selectedOption = option
+                    } label: {
+                        HStack {
+                            Text(option.rawValue)
+                            Spacer()
+                            Image(systemName: option.iconName)
+                        }
+                    }
+                }
+            } label: {
+                HStack {
+                    Text(selectedOption.rawValue)
+                    Image(systemName: "chevron.down")
                 }
             }
-            .pickerStyle(.menu)
             .tint(.accent)
         }
     }

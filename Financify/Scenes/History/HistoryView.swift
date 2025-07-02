@@ -4,44 +4,6 @@ struct HistoryView: View {
     // MARK: - Properties
     @StateObject private var viewModel: HistoryViewModel
     
-    private var fromDateBinding: Binding<Date> {
-        Binding<Date>(
-            get: { viewModel.fromDate },
-            set: { newFrom in
-                // если выбрано позже toDate — устанавливаем toDate
-                if newFrom > viewModel.toDate {
-                    viewModel.toDate = newFrom
-                }
-                viewModel.fromDate = newFrom
-                Task { await viewModel.refresh() }
-            }
-        )
-    }
-    
-    private var toDateBinding: Binding<Date> {
-        Binding<Date>(
-            get: { viewModel.toDate },
-            set: { newTo in
-                // если выбрано раньше fromDate — устанавливаем fromDate
-                if newTo < viewModel.fromDate {
-                    viewModel.fromDate = newTo
-                }
-                viewModel.toDate = newTo
-                Task { await viewModel.refresh() }
-            }
-        )
-    }
-    
-    private var selectedSortOptionBinding: Binding<SortOption> {
-        Binding<SortOption>(
-            get: { viewModel.selectedSortOption },
-            set: { newOption in
-                viewModel.selectedSortOption = newOption
-                Task { await viewModel.refresh() }
-            }
-        )
-    }
-    
     // MARK: - Lifecycle
     init(
         direction: Direction,
@@ -59,52 +21,47 @@ struct HistoryView: View {
     }
     
     var body: some View {
-        ZStack {
-            List {
-                Section {
-                    HStack {
-                        Text(verbatim: .datePickerStartTitle)
-                        Spacer()
-                        DatePicker("", selection: fromDateBinding, displayedComponents: .date)
-                            .tint(.accent)
-                            .labelsHidden()
-                            .background(Color(hex: .datePickerHexColor)
-                            .cornerRadius(.datePickerCornerRadius))
-                    }
-                    HStack {
-                        Text(verbatim: .datePickerEndTitle)
-                        Spacer()
-                        DatePicker("", selection: toDateBinding, displayedComponents: .date)
-                            .tint(.accent)
-                            .labelsHidden()
-                            .background(Color(hex: .datePickerHexColor)
-                            .cornerRadius(.datePickerCornerRadius))
-                    }
-                    SortCell(selectedOption: selectedSortOptionBinding)
-                    SummaryCell(
-                        total: viewModel.total,
-                        title: .summaryCellTitle,
-                        currency: viewModel.currency
-                    )
-                }
+        List {
+            Section {
+                DatePicker(
+                    String.datePickerStartTitle,
+                    selection: $viewModel.fromDate,
+                    displayedComponents: .date
+                )
+                .datePickerStyle(HistoryDatePickerStyle())
                 
-                Section(header:
-                            Text(verbatim: .sectionHeaderText)
-                    .font(.system(size: .sectionHeaderFontSize, weight: .regular))
-                    .foregroundColor(.secondary))
-                {
-                    ForEach(viewModel.transactions) { transaction in
-                        NavigationLink(destination: EmptyView()) {
-                            TransactionCell(
-                                transaction: transaction,
-                                category: viewModel.category(for: transaction),
-                                currency: viewModel.currency
-                            )
-                        }
+                DatePicker(
+                    String.datePickerEndTitle,
+                    selection: $viewModel.toDate,
+                    displayedComponents: .date
+                )
+                .datePickerStyle(HistoryDatePickerStyle())
+                
+                SortCell(selectedOption: $viewModel.selectedSortOption)
+                SummaryCell(
+                    total: viewModel.total,
+                    title: .summaryCellTitle,
+                    currency: viewModel.currency
+                )
+            }
+            
+            Section(header:
+                        Text(verbatim: .sectionHeaderText)
+                .font(.system(size: .sectionHeaderFontSize, weight: .regular))
+                .foregroundColor(.secondary))
+            {
+                ForEach(viewModel.transactions) { transaction in
+                    NavigationLink(destination: EmptyView()) {
+                        TransactionCell(
+                            transaction: transaction,
+                            category: viewModel.category(for: transaction),
+                            currency: viewModel.currency
+                        )
                     }
                 }
             }
-            
+        }
+        .overlay(alignment: .center) {
             // Пока данные грузятся - показываем анимацию загрузки по центру экрана
             if viewModel.isLoading && viewModel.transactions.isEmpty {
                 LoadingAnimation()
@@ -138,4 +95,23 @@ fileprivate extension String {
     static let sectionHeaderText: String = "ОПЕРАЦИИ"
     static let datePickerHexColor: String = "#D4FAE6"
     static let toolbarDocumentIconName: String = "document"
+}
+
+// MARK: - HistoryDatePickerStyle
+struct HistoryDatePickerStyle: DatePickerStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        HStack {
+            configuration.label
+            Spacer()
+            DatePicker(
+                "",
+                selection: configuration.$selection,
+                displayedComponents: configuration.displayedComponents
+            )
+                .tint(.accent)
+                .labelsHidden()
+                .background(Color(hex: .datePickerHexColor)
+                .cornerRadius(.datePickerCornerRadius))
+        }
+    }
 }
