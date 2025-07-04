@@ -57,7 +57,9 @@ struct MainTabView: View {
                     Text("Счёт") }
             
             // Статьи
-            Text("Статьи")
+            CategoriesView(
+                categoriesService: dependencies.categoryService
+            )
                 .tabItem {
                     Image(.categories)
                         .renderingMode(.template)
