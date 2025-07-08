@@ -1,6 +1,6 @@
 import Foundation
 
-protocol BankAccountServiceLogic {
+protocol BankAccountServiceLogic: Actor {
     func primaryAccount() async throws -> BankAccount
     func updatePrimaryAccount(with account: BankAccount) async throws -> Void
     func updatePrimaryBalance(with balance: Decimal) async throws -> Void
