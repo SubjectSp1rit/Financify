@@ -29,6 +29,9 @@ struct TransactionCell: View {
             Text("\(transaction.amount.moneyFormatted) \(currency.rawValue)")
         }
         .frame(minHeight: .transactionRowMinHeight, alignment: .center)
+        .alignmentGuide(.listRowSeparatorLeading) { viewDimensions in
+            return viewDimensions[.listRowSeparatorLeading] + 36
+        }
     }
 }
 

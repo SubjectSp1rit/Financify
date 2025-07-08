@@ -11,18 +11,17 @@ struct CategoryCell: View {
                 .padding(.emojiPadding)
                 .background(Circle().fill(Color(hex: .emojiBackgroundHex)))
             
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading) {
                 Text(category.name)
             }
+        }
+        .alignmentGuide(.listRowSeparatorLeading) { viewDimensions in
+            return viewDimensions[.listRowSeparatorLeading] + 36
         }
     }
 }
 
 // MARK: - Constants
-fileprivate extension Int {
-    static let numberOfCommentLines: Int = 1
-}
-
 fileprivate extension String {
     static let emojiBackgroundHex: String = "#D4FAE6"
 }

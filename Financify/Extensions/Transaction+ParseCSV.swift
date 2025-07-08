@@ -1,13 +1,13 @@
 import Foundation
 
 extension Transaction {
-    private static let csvDateFormatter: ISO8601DateFormatter = {
-        let dateFormatter = ISO8601DateFormatter()
-        dateFormatter.formatOptions = [.withInternetDateTime]
-        return dateFormatter
-    }()
-    
     static func parse(csvLine: String, delimiter: Character = ",") -> Transaction? {
+        let csvDateFormatter: ISO8601DateFormatter = {
+            let dateFormatter = ISO8601DateFormatter()
+            dateFormatter.formatOptions = [.withInternetDateTime]
+            return dateFormatter
+        }()
+        
         let columns = csvLine
             .split(
                 separator: delimiter,

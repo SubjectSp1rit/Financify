@@ -1,6 +1,6 @@
 import Foundation
 
-protocol TransactionsServiceLogic {
+protocol TransactionsServiceLogic: Actor {
     func getAllTransactions(_ filter: (Transaction) -> Bool) async throws -> [Transaction]
     func getAllTransactions() async throws -> [Transaction]
     func addTransaction(_ transaction: Transaction) async throws
