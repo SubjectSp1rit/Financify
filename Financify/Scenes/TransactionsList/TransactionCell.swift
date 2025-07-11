@@ -11,7 +11,7 @@ struct TransactionCell: View {
             Text(String(category?.emoji ?? .unknownCategoryEmoji))
                 .font(.system(size: .emojiFontSize))
                 .padding(.emojiPadding)
-                .background(Circle().fill(Color(hex: .emojiBackgroundHex)))
+                .background(Circle().fill(.thirdAccent))
             
             VStack(alignment: .leading, spacing: 2) {
                 Text(category?.name ?? .unknownCategoryName)
@@ -46,7 +46,6 @@ fileprivate extension Character {
 
 fileprivate extension String {
     static let unknownCategoryName: String = "Unknown Category"
-    static let emojiBackgroundHex: String = "#D4FAE6"
 }
 
 fileprivate extension CGFloat {

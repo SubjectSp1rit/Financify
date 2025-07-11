@@ -52,7 +52,7 @@ struct BalanceView: View {
             }
             .task { await viewModel.refreshBalance() }
         }
-        .tint(Color(hex: Constants.Style.toolbarIconColorHex))
+        .tint(.secondAccent)
     }
     
     private var balanceSection: some View {
@@ -106,7 +106,7 @@ struct BalanceView: View {
     private var currencySection: some View {
         Section {
             ZStack {
-                (isEditing ? Color.white : Color(hex: Constants.Style.currencySectionBackgroundHex))
+                (isEditing ? Color.white : .thirdAccent)
                     .animation(.easeInOut(duration: Constants.Style.animationDuration), value: isEditing)
                 
                 Button(action: {
@@ -168,9 +168,7 @@ struct BalanceView: View {
 // MARK: - Constants
 fileprivate enum Constants {
     enum Style {
-        static let toolbarIconColorHex: String = "#6F5DB7"
         static let primaryTextColorHex: String = "#3C3C43"
-        static let currencySectionBackgroundHex: String = "#D4FAE6"
         
         static let animationDuration: Double = 0.4
         static let verticalPadding: CGFloat = 8

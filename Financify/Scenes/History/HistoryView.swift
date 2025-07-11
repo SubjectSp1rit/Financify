@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct HistoryView: View {
     // MARK: - Properties
@@ -68,10 +69,19 @@ struct HistoryView: View {
                 LoadingAnimation()
             }
         }
-        .navigationTitle(String.historyNavigationTitle)
+        .navigationTitle(
+            viewModel.direction == .income ? String.historyIncomeNavigationTitle : String.historyExpensesNavigationTitle)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
-                NavigationLink(destination: EmptyView()) {
+                NavigationLink(
+                    destination: AnalysisViewControllerWrapper(
+                        direction: viewModel.direction,
+                        categoriesService: viewModel.categoriesService,
+                        transactionsService: viewModel.transactionsService,
+                        bankAccountService: viewModel.bankAccountService
+                    )
+                    .navigationBarHidden(true).ignoresSafeArea(edges: .top)
+                ) {
                     Image(systemName: .toolbarDocumentIconName)
                 }
             }
@@ -89,12 +99,12 @@ fileprivate extension CGFloat {
 }
 
 fileprivate extension String {
-    static let historyNavigationTitle: String = "Моя история"
+    static let historyExpensesNavigationTitle: String = "История расходов"
+    static let historyIncomeNavigationTitle: String = "История доходов"
     static let datePickerStartTitle: String = "Начало"
     static let datePickerEndTitle: String = "Конец"
     static let summaryCellTitle: String = "Сумма"
     static let sectionHeaderText: String = "ОПЕРАЦИИ"
-    static let datePickerHexColor: String = "#D4FAE6"
     static let toolbarDocumentIconName: String = "document"
 }
 
@@ -111,8 +121,37 @@ struct HistoryDatePickerStyle: DatePickerStyle {
             )
                 .tint(.accent)
                 .labelsHidden()
-                .background(Color(hex: .datePickerHexColor)
-                .cornerRadius(.datePickerCornerRadius))
+                .background(.thirdAccent)
+                .cornerRadius(.datePickerCornerRadius)
         }
     }
+}
+
+// MARK: - AnalysisViewControllerWrapper
+struct AnalysisViewControllerWrapper: UIViewControllerRepresentable {
+    @Environment(\.dismiss) private var dismiss
+    let direction: Direction
+    let categoriesService: CategoriesServiceLogic
+    let transactionsService: TransactionsServiceLogic
+    let bankAccountService: BankAccountServiceLogic
+    
+    func makeUIViewController(
+        context: UIViewControllerRepresentableContext<AnalysisViewControllerWrapper>
+    ) -> UIViewController {
+        let analysisVC = AnalysisAssembly.build(
+            direction: direction,
+            categoriesService: categoriesService,
+            transactionsService: transactionsService,
+            bankAccountService: bankAccountService,
+            onClose: { dismiss() }
+        )
+        
+        let nav = UINavigationController(
+            rootViewController: analysisVC
+        )
+        nav.navigationBar.prefersLargeTitles = true
+        return nav
+    }
+
+    func updateUIViewController(_ uiViewController: UIViewController, context: UIViewControllerRepresentableContext<AnalysisViewControllerWrapper>) {}
 }

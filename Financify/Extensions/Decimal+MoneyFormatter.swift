@@ -13,4 +13,8 @@ extension Decimal {
     var moneyFormatted: String {
         decimalFormatter.string(from: self as NSDecimalNumber) ?? ""
     }
+    
+    func moneyFormatted(with currencyCode: String) -> String {
+        "\(moneyFormatted) \(currencyCode)"
+    }
 }

@@ -87,7 +87,7 @@ struct TransactionsListView: View {
             }
             .task { await viewModel.refresh() }
         }
-        .tint(Color(hex: .toolbarIconColorHex))
+        .tint(.secondAccent)
     }
 }
 
@@ -96,7 +96,6 @@ fileprivate extension String {
     static let operationsHeader: String = "ОПЕРАЦИИ"
     static let plusIconName: String = "plus"
     static let clockIconName: String = "clock"
-    static let toolbarIconColorHex: String = "#6F5DB7"
     static let summaryTitle: String = "Всего"
 }
 

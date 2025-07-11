@@ -3,9 +3,9 @@ import Foundation
 @MainActor
 final class HistoryViewModel: ObservableObject {
     // MARK: - Services
-    private let categoriesService: CategoriesServiceLogic
-    private let transactionsService: TransactionsServiceLogic
-    private let bankAccountService: BankAccountServiceLogic
+    let categoriesService: CategoriesServiceLogic
+    let transactionsService: TransactionsServiceLogic
+    let bankAccountService: BankAccountServiceLogic
     
     // MARK: - Published
     @Published private(set) var categories: [Int:Category] = [:]
@@ -85,9 +85,6 @@ final class HistoryViewModel: ObservableObject {
 
             let cats = try await categoriesService.getCategories(by: direction)
             categories = Dictionary(uniqueKeysWithValues: cats.map { ($0.id, $0) })
-
-            let startOfDay = calendar.startOfDay(for: fromDate)
-            let endOfDay   = calendar.date(byAdding: DateComponents(day:1, second:-1), to: calendar.startOfDay(for: toDate))!
 
             let transactionByPeriod = try await transactionsService.getAllTransactions {
                 (startOfDay...endOfDay).contains($0.transactionDate)
