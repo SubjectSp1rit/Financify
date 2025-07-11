@@ -9,7 +9,7 @@ struct CategoryCell: View {
             Text(String(category.emoji))
                 .font(.system(size: .emojiFontSize))
                 .padding(.emojiPadding)
-                .background(Circle().fill(Color(hex: .emojiBackgroundHex)))
+                .background(Circle().fill(.thirdAccent))
             
             VStack(alignment: .leading) {
                 Text(category.name)
@@ -22,10 +22,6 @@ struct CategoryCell: View {
 }
 
 // MARK: - Constants
-fileprivate extension String {
-    static let emojiBackgroundHex: String = "#D4FAE6"
-}
-
 fileprivate extension CGFloat {
     static let emojiFontSize: CGFloat = 20
     static let emojiPadding: CGFloat = 4

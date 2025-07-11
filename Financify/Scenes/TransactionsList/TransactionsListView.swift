@@ -3,6 +3,8 @@ import SwiftUI
 struct TransactionsListView: View {
     // MARK: - Properties
     @StateObject private var viewModel: TransactionsListViewModel
+    @State private var isPresentingNew = false
+    @State private var editingTransaction: Transaction? = nil
     
     // MARK: - Lifecycle
     init(
@@ -36,16 +38,20 @@ struct TransactionsListView: View {
                         .redacted(reason: viewModel.isLoading ? .placeholder : [])
                 }
                 
-                Section(String.operationsHeader)
-                {
+                Section(String.operationsHeader) {
                     ForEach(viewModel.transactions) { transaction in
-                        NavigationLink(destination: EmptyView()) {
+                        Button {
+                            editingTransaction = transaction
+                        } label: {
                             TransactionCell(
                                 transaction: transaction,
                                 category: viewModel.category(for: transaction),
                                 currency: viewModel.currency
                             )
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .contentShape(Rectangle())
                         }
+                        .buttonStyle(.plain)
                     }
                 }
             }
@@ -58,7 +64,7 @@ struct TransactionsListView: View {
             }
             .overlay(alignment: .bottomTrailing) {
                 Button(action: {
-                    
+                    isPresentingNew = true
                 }) {
                     Image(systemName: .plusIconName)
                         .font(.system(size: .plusButtonIconSize))
@@ -69,7 +75,7 @@ struct TransactionsListView: View {
                 }
                 .padding(.horizontal)
                 .padding(.bottom, .plusButtonBottomPadding)
-            }  
+            }
             .navigationTitle(viewModel.direction.title)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -86,8 +92,35 @@ struct TransactionsListView: View {
                 }
             }
             .task { await viewModel.refresh() }
+            // Создание операции
+            .fullScreenCover(isPresented: $isPresentingNew, onDismiss: {
+                Task { await viewModel.refresh() }
+            }) {
+                TransactionEditorView(
+                    isNew: true,
+                    direction: viewModel.direction,
+                    transaction: nil,
+                    categoriesService: viewModel.categoriesService,
+                    transactionsService: viewModel.transactionsService,
+                    bankAccountService: viewModel.bankAccountService
+                )
+            }
+            
+            // Изменение операции
+            .fullScreenCover(item: $editingTransaction, onDismiss: {
+                Task { await viewModel.refresh() }
+            }) { tx in
+                TransactionEditorView(
+                    isNew: false,
+                    direction: viewModel.direction,
+                    transaction: tx,
+                    categoriesService: viewModel.categoriesService,
+                    transactionsService: viewModel.transactionsService,
+                    bankAccountService: viewModel.bankAccountService
+                )
+            }
         }
-        .tint(Color(hex: .toolbarIconColorHex))
+        .tint(.secondAccent)
     }
 }
 
@@ -96,7 +129,6 @@ fileprivate extension String {
     static let operationsHeader: String = "ОПЕРАЦИИ"
     static let plusIconName: String = "plus"
     static let clockIconName: String = "clock"
-    static let toolbarIconColorHex: String = "#6F5DB7"
     static let summaryTitle: String = "Всего"
 }
 

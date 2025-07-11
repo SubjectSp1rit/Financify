@@ -11,7 +11,7 @@ struct SummaryCell: View {
             Text(verbatim: title)
             Spacer()
             Text("\(total.moneyFormatted) \(currency.rawValue)")
-                .foregroundStyle(Color(hex: "#3C3C43"))
+                .foregroundStyle(.secondPrimary)
         }
     }
 }
