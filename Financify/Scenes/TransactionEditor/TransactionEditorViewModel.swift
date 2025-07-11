@@ -6,32 +6,33 @@ final class TransactionEditorViewModel: ObservableObject {
     let categoriesService: CategoriesServiceLogic
     let transactionsService: TransactionsServiceLogic
     let bankAccountService: BankAccountServiceLogic
-    
+
     // MARK: - Properties
     var isLoading: Bool = false
     let isNew: Bool
     let direction: Direction
     private var editingTransaction: Transaction?
-    
+
     private var decimalSeparator: String {
-        Locale.current.decimalSeparator ?? ","
+        Locale.current.decimalSeparator
+        ?? Constants.Formatting.fallbackDecimalSeparator
     }
-    
+
     var canSave: Bool {
-        selectedCategory != nil && amountDecimal() > 0
+        selectedCategory != nil && amountDecimal() > .zero
     }
-    
+
     // MARK: - Published
     @Published var categories: [Category] = []
     @Published var selectedCategory: Category? = nil
-    @Published var amountText: String = "0"
+    @Published var amountText: String = Constants.Amount.defaultText
     @Published var date: Date = Date()
     @Published var time: Date = Date()
     @Published var comment: String = ""
     @Published var currency: Currency = .rub
     @Published var showAlert = false
     @Published var alertMessage: String = ""
-    
+
     // MARK: - Lifecycle
     init(
         isNew: Bool,
@@ -48,21 +49,21 @@ final class TransactionEditorViewModel: ObservableObject {
         self.transactionsService = transactionsService
         self.bankAccountService = bankAccountService
     }
-    
+
     // MARK: - Methods
     func loadInitialData() async {
         isLoading = true
         defer { isLoading = false }
-        
+
         do {
             async let accountTask = bankAccountService.primaryAccount()
             async let categoriesTask = categoriesService.getCategories(by: direction)
-            
+
             let (acc, cats) = try await (accountTask, categoriesTask)
-            
+
             currency = Currency(jsonTitle: acc.currency)
             categories = cats
-            
+
             if let tx = editingTransaction {
                 selectedCategory = categories.first { $0.id == tx.categoryId }
                 amountText = tx.amount.moneyFormatted
@@ -71,33 +72,36 @@ final class TransactionEditorViewModel: ObservableObject {
                 comment = tx.comment ?? ""
             }
         } catch {
-            alertMessage = "Не удалось загрузить данные"
+            alertMessage = Constants.ErrorMessages.loadFailed
             showAlert = true
         }
     }
 
-    
     func sanitizeAmount(_ newValue: String) {
         var filtered = newValue
             .filter { $0.isNumber || String($0) == decimalSeparator }
-        
-        if filtered.filter({ String($0) == decimalSeparator }).count > 1 {
+
+        if filtered.filter({ String($0) == decimalSeparator }).count
+            > Constants.Sanitize.maxDecimalSeparatorCount {
             filtered.removeLast()
         }
-        
+
         if filtered.first == "0",
-           filtered.count > 1,
+           filtered.count > Constants.Sanitize.leadingDigitsLimit,
            filtered[filtered.index(after: filtered.startIndex)].isNumber {
             filtered.removeFirst()
         }
-        
-        if filtered.isEmpty { filtered = "0" }
+
+        if filtered.isEmpty {
+            filtered = Constants.Amount.defaultText
+        }
+
         amountText = filtered
     }
-    
+
     func save() async {
         guard canSave else {
-            alertMessage = "Заполните категорию и сумму"
+            alertMessage = Constants.ErrorMessages.validationFailed
             showAlert = true
             return
         }
@@ -105,7 +109,7 @@ final class TransactionEditorViewModel: ObservableObject {
         let dateTime = Calendar.current.date(
             bySettingHour: Calendar.current.component(.hour, from: time),
             minute: Calendar.current.component(.minute, from: time),
-            second: 0,
+            second: Constants.DateTime.zeroSeconds,
             of: date
         )!
 
@@ -115,13 +119,13 @@ final class TransactionEditorViewModel: ObservableObject {
                 newId = existing
             } else {
                 let allTx = try await transactionsService.getAllTransactions { _ in true }
-                let maxId = allTx.map(\.id).max() ?? 0
-                newId = maxId + 1
+                let maxId = allTx.map(\.id).max() ?? .zero
+                newId = maxId + Constants.Transaction.idIncrement
             }
 
             let tx = Transaction(
                 id: newId,
-                accountId: 0,
+                accountId: Constants.Transaction.defaultAccountId,
                 categoryId: selectedCategory!.id,
                 amount: amountDecimal(),
                 transactionDate: dateTime,
@@ -136,26 +140,53 @@ final class TransactionEditorViewModel: ObservableObject {
                 try await transactionsService.updateTransaction(tx)
             }
         } catch {
-            alertMessage = "Не удалось сохранить транзакцию"
+            alertMessage = Constants.ErrorMessages.saveFailed
             showAlert = true
         }
     }
 
-    
     func deleteTransaction() async {
         guard let id = editingTransaction?.id else { return }
         do {
             try await transactionsService.deleteTransaction(byId: id)
         } catch {
-            alertMessage = "Не удалось удалить транзакцию"
+            alertMessage = Constants.ErrorMessages.deleteFailed
             showAlert = true
         }
     }
-    
+
     // MARK: - Private Methods
     private func amountDecimal() -> Decimal {
         let formatter = NumberFormatter()
         formatter.decimalSeparator = decimalSeparator
-        return formatter.number(from: amountText)?.decimalValue ?? 0
+        return formatter.number(from: amountText)?.decimalValue ?? .zero
+    }
+}
+
+// MARK: - Constants
+
+private enum Constants {
+    enum Amount {
+        static let defaultText: String = "0"
+    }
+    enum Formatting {
+        static let fallbackDecimalSeparator: String = ","
+    }
+    enum Sanitize {
+        static let maxDecimalSeparatorCount: Int = 1
+        static let leadingDigitsLimit: Int = 1
+    }
+    enum ErrorMessages {
+        static let loadFailed: String = "Не удалось загрузить данные"
+        static let validationFailed: String = "Заполните категорию и сумму"
+        static let saveFailed: String = "Не удалось сохранить транзакцию"
+        static let deleteFailed: String = "Не удалось удалить транзакцию"
+    }
+    enum DateTime {
+        static let zeroSeconds: Int = 0
+    }
+    enum Transaction {
+        static let defaultAccountId: Int = 0
+        static let idIncrement: Int = 1
     }
 }

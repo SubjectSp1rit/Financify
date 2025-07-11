@@ -5,7 +5,7 @@ struct TransactionEditorView: View {
     @StateObject private var viewModel: TransactionEditorViewModel
     @Environment(\.dismiss) private var dismiss
     @FocusState private var amountFocused: Bool
-    
+
     // MARK: - Lifecycle
     init(
         isNew: Bool,
@@ -25,7 +25,7 @@ struct TransactionEditorView: View {
         )
         _viewModel = StateObject(wrappedValue: vm)
     }
-    
+
     // MARK: - Body
     var body: some View {
         NavigationStack {
@@ -37,8 +37,7 @@ struct TransactionEditorView: View {
                     timePickerRow
                     commentRow
                 }
-                
-                // MARK: Delete
+
                 if !viewModel.isNew {
                     Section {
                         Button(role: .destructive) {
@@ -47,26 +46,38 @@ struct TransactionEditorView: View {
                                 dismiss()
                             }
                         } label: {
-                            Text("Удалить расход")
+                            Text(Constants.DeleteSection.deleteButtonTitle)
                                 .foregroundStyle(.red)
                         }
                     }
                 }
             }
-            .alert(viewModel.alertMessage, isPresented: $viewModel.showAlert) { Button("Ок", role: .cancel) {} }
+            .alert(viewModel.alertMessage, isPresented: $viewModel.showAlert) {
+                Button(Constants.Alert.okButtonTitle, role: .cancel) {}
+            }
             .task {
                 await viewModel.loadInitialData()
             }
-            .safeAreaInset(edge: .top, spacing: 0) {
-                Color.clear.frame(height: 16)
+            .safeAreaInset(edge: .top, spacing: Constants.Layout.safeAreaInsetSpacing) {
+                Color.clear
+                    .frame(height: Constants.Layout.safeAreaTopHeight)
             }
-            .navigationTitle(viewModel.direction == .income ? "Мои доходы" : "Мои расходы")
+            .navigationTitle(
+                viewModel.direction == .income
+                    ? Constants.NavigationTitle.income
+                    : Constants.NavigationTitle.expense
+            )
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Отмена") { dismiss() }
+                    Button(Constants.Toolbar.cancelButtonTitle) {
+                        dismiss()
+                    }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button(viewModel.isNew ? "Создать" : "Сохранить") {
+                    Button(viewModel.isNew
+                           ? Constants.Toolbar.createButtonTitle
+                           : Constants.Toolbar.saveButtonTitle
+                    ) {
                         Task {
                             await viewModel.save()
                             if !viewModel.showAlert { dismiss() }
@@ -75,15 +86,17 @@ struct TransactionEditorView: View {
                     .disabled(!viewModel.canSave)
                 }
             }
-            .onAppear { amountFocused = viewModel.isNew }
+            .onAppear {
+                amountFocused = viewModel.isNew
+            }
         }
         .tint(.secondAccent)
     }
-    
+
     // MARK: - Additional Views
     private var categoryRow: some View {
         HStack {
-            Text("Статья")
+            Text(Constants.CategoryRow.title)
             Spacer()
             Menu {
                 ForEach(viewModel.categories) { cat in
@@ -92,56 +105,106 @@ struct TransactionEditorView: View {
                     }
                 }
             } label: {
-                Text(viewModel.selectedCategory == nil
-                     ? "Выберите категорию"
-                     : "\(viewModel.selectedCategory!.name)")
+                Text(
+                    viewModel.selectedCategory == nil
+                        ? Constants.CategoryRow.placeholder
+                        : "\(viewModel.selectedCategory!.name)"
+                )
                 .foregroundColor(.gray)
                 CustomChevronRight()
             }
         }
     }
-    
+
     private var amountRow: some View {
         HStack {
-            Text("Сумма")
+            Text(Constants.AmountRow.title)
             Spacer()
-            TextField("", text: $viewModel.amountText)
-                .foregroundColor(.gray)
-                .keyboardType(.decimalPad)
-                .focused($amountFocused)
-                .multilineTextAlignment(.trailing)
-                .onChange(of: viewModel.amountText) { _, newValue in viewModel.sanitizeAmount(newValue) }
-                .frame(maxWidth: 100)
+            TextField(
+                Constants.AmountRow.placeholder,
+                text: $viewModel.amountText
+            )
+            .foregroundColor(.gray)
+            .keyboardType(.decimalPad)
+            .focused($amountFocused)
+            .multilineTextAlignment(.trailing)
+            .onChange(of: viewModel.amountText) { _, newValue in
+                viewModel.sanitizeAmount(newValue)
+            }
+            .frame(maxWidth: Constants.AmountRow.textFieldMaxWidth)
             Text(viewModel.currency.rawValue)
                 .foregroundColor(.gray)
         }
     }
-    
+
     private var datePickerRow: some View {
         DatePicker(
-            "Дата",
+            Constants.DatePickerRow.title,
             selection: $viewModel.date,
             in: ...Date(),
             displayedComponents: .date
         )
         .datePickerStyle(CustomDatePickerStyle(range: ...Date()))
     }
-        
+
     private var timePickerRow: some View {
         let now = Date()
         let isToday = Calendar.current.isDate(viewModel.date, inSameDayAs: now)
         let range: PartialRangeThrough<Date>? = isToday ? ...now : nil
 
         return DatePicker(
-            "Время",
+            Constants.TimePickerRow.title,
             selection: $viewModel.time,
             displayedComponents: .hourAndMinute
         )
         .datePickerStyle(CustomDatePickerStyle(range: range))
     }
-    
+
     private var commentRow: some View {
-        TextField("Комментарий", text: $viewModel.comment)
-            .foregroundColor(.gray)
+        TextField(
+            Constants.CommentRow.placeholder,
+            text: $viewModel.comment
+        )
+        .foregroundColor(.gray)
+    }
+}
+
+private enum Constants {
+    enum CategoryRow {
+        static let title: String = "Статья"
+        static let placeholder: String = "Выберите категорию"
+    }
+    enum AmountRow {
+        static let title: String = "Сумма"
+        static let placeholder: String = ""
+        static let textFieldMaxWidth: CGFloat = 100
+    }
+    enum DatePickerRow {
+        static let title: String = "Дата"
+    }
+    enum TimePickerRow {
+        static let title: String = "Время"
+    }
+    enum CommentRow {
+        static let placeholder: String = "Комментарий"
+    }
+    enum DeleteSection {
+        static let deleteButtonTitle: String = "Удалить расход"
+    }
+    enum Alert {
+        static let okButtonTitle: String = "Ок"
+    }
+    enum NavigationTitle {
+        static let income: String = "Мои доходы"
+        static let expense: String = "Мои расходы"
+    }
+    enum Toolbar {
+        static let cancelButtonTitle: String = "Отмена"
+        static let createButtonTitle: String = "Создать"
+        static let saveButtonTitle: String = "Сохранить"
+    }
+    enum Layout {
+        static let safeAreaInsetSpacing: CGFloat = 0
+        static let safeAreaTopHeight: CGFloat = 16
     }
 }
