@@ -27,6 +27,8 @@ struct TransactionCell: View {
             Spacer()
             
             Text("\(transaction.amount.moneyFormatted) \(currency.rawValue)")
+            
+            CustomChevronRight()
         }
         .frame(minHeight: .transactionRowMinHeight, alignment: .center)
         .alignmentGuide(.listRowSeparatorLeading) { viewDimensions in

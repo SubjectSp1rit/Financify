@@ -90,10 +90,10 @@ struct BalanceView: View {
                                     isBalanceHidden.toggle()
                                 }
                             }
-                            .foregroundStyle(Color(hex: Constants.Style.primaryTextColorHex))
+                            .foregroundStyle(.secondPrimary)
                     }
                     Text("\(viewModel.selectedCurrency.rawValue)")
-                        .foregroundStyle(Color(hex: Constants.Style.primaryTextColorHex))
+                        .foregroundStyle(.secondPrimary)
                 }
                 .animation(nil, value: isEditing)
                 .padding(.vertical, Constants.Style.verticalPadding)
@@ -116,9 +116,9 @@ struct BalanceView: View {
                         Text(Constants.Text.currencyTitle).foregroundColor(.black)
                         Spacer()
                         Text(viewModel.selectedCurrency.rawValue)
-                            .foregroundStyle(Color(hex: Constants.Style.primaryTextColorHex))
+                            .foregroundStyle(.secondPrimary)
                         if isEditing {
-                            Image(systemName: Constants.SFSymbols.chevronRight).font(Font.system(.footnote).weight(.semibold)).tint(Color.gray.opacity(Constants.Style.chevronOpacity))
+                            CustomChevronRight()
                         }
                     }
                     .padding(.vertical, Constants.Style.verticalPadding)
@@ -168,8 +168,6 @@ struct BalanceView: View {
 // MARK: - Constants
 fileprivate enum Constants {
     enum Style {
-        static let primaryTextColorHex: String = "#3C3C43"
-        
         static let animationDuration: Double = 0.4
         static let verticalPadding: CGFloat = 8
         static let sectionSpacing: CGFloat = 16

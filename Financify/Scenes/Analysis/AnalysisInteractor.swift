@@ -169,3 +169,16 @@ final class AnalysisInteractor: AnalysisBusinessLogic, AnalysisBusinessStorage {
         }
     }
 }
+
+extension AnalysisInteractor {
+    func makeEditorView(for transaction: Transaction?) -> TransactionEditorView {
+        TransactionEditorView(
+            isNew: transaction == nil,
+            direction: direction,
+            transaction: transaction,
+            categoriesService: categoriesService,
+            transactionsService: transactionsService,
+            bankAccountService: bankAccountService
+        )
+    }
+}

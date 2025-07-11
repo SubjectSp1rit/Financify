@@ -1,4 +1,5 @@
 import UIKit
+import SwiftUI
 
 final class AnalysisViewController: UIViewController {
     typealias AnalysisInteractorProtocols = (AnalysisBusinessLogic & AnalysisBusinessStorage)
@@ -129,6 +130,17 @@ final class AnalysisViewController: UIViewController {
         }
     }
     
+    private func presentEditor(for transaction: Transaction?) {
+        let editorView = interactor.makeEditorView(for: transaction)
+
+        let host = UIHostingController(rootView: editorView)
+        host.modalPresentationStyle = .fullScreen
+
+        host.presentationController?.delegate = self
+
+        present(host, animated: true)
+    }
+    
     // MARK: - Actions
     @objc private func eyeTapped() {
         showAllCategories.toggle()
@@ -142,6 +154,13 @@ final class AnalysisViewController: UIViewController {
         } else {
             navigationController?.popViewController(animated: true)
         }
+    }
+}
+
+// MARK: - UIAdaptivePresentationControllerDelegate
+extension AnalysisViewController: UIAdaptivePresentationControllerDelegate {
+    func presentationControllerDidDismiss(_ presentationController: UIPresentationController) {
+        Task { await interactor.refresh() }
     }
 }
 
@@ -246,6 +265,12 @@ extension AnalysisViewController: UITableViewDataSource {
         }
     }
     
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        guard Section(rawValue: indexPath.section) == .transactions else { return }
+        let tx = interactor.transactions[indexPath.row]
+        presentEditor(for: tx)
+    }
+    
     private func makeDatePickerCell(
         kind: DatePickerCellConfiguration.Kind,
         at indexPath: IndexPath
@@ -302,6 +327,7 @@ extension AnalysisViewController: UITableViewDataSource {
             withConfiguration: symbolCfg
         )
         cfg.imagePlacement = .trailing
+        cfg.contentInsets = .zero
         cfg.imagePadding = Constants.SortButton.imagePadding
         
         let button = UIButton(configuration: cfg)

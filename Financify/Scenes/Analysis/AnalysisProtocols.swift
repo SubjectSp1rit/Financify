@@ -2,6 +2,7 @@ import Foundation
 
 protocol AnalysisBusinessStorage {
     var total: Decimal { get }
+    var transactions: [Transaction] { get }
     var direction: Direction { get }
     var summaries: [CategorySummary] { get }
     var currency: Currency { get }
@@ -16,6 +17,7 @@ protocol AnalysisBusinessLogic {
     func setToDate(_ date: Date) async
     func setSortOption(_ option: SortOption) async
     func setShowEmptyCategories(_ flag: Bool) async
+    func makeEditorView(for transaction: Transaction?) -> TransactionEditorView
 }
 
 protocol AnalysisPresentationLogic {
