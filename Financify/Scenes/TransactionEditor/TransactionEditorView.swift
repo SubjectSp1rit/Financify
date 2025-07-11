@@ -83,7 +83,6 @@ struct TransactionEditorView: View {
                             if !viewModel.showAlert { dismiss() }
                         }
                     }
-                    .disabled(!viewModel.canSave)
                 }
             }
             .onAppear {
@@ -195,8 +194,8 @@ private enum Constants {
         static let okButtonTitle: String = "Ок"
     }
     enum NavigationTitle {
-        static let income: String = "Мои доходы"
-        static let expense: String = "Мои расходы"
+        static let income: String = "Мои Доходы"
+        static let expense: String = "Мои Расходы"
     }
     enum Toolbar {
         static let cancelButtonTitle: String = "Отмена"
