@@ -91,7 +91,8 @@ struct TransactionsListView: View {
                     }
                 }
             }
-            .task { await viewModel.refresh() }
+            .task {
+                await viewModel.refresh() }
             // Создание операции
             .fullScreenCover(isPresented: $isPresentingNew, onDismiss: {
                 Task { await viewModel.refresh() }
