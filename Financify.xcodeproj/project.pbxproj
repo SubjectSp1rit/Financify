@@ -6,6 +6,11 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		AEF09FBA2E24688B00DE12A8 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = AEF09FB92E24688B00DE12A8 /* Alamofire */; };
+		AEF09FBC2E24688B00DE12A8 /* AlamofireDynamic in Frameworks */ = {isa = PBXBuildFile; productRef = AEF09FBB2E24688B00DE12A8 /* AlamofireDynamic */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		AE07DD382DFB0FC700E128D9 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -59,6 +64,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AEF09FBA2E24688B00DE12A8 /* Alamofire in Frameworks */,
+				AEF09FBC2E24688B00DE12A8 /* AlamofireDynamic in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -127,6 +134,8 @@
 			);
 			name = Financify;
 			packageProductDependencies = (
+				AEF09FB92E24688B00DE12A8 /* Alamofire */,
+				AEF09FBB2E24688B00DE12A8 /* AlamofireDynamic */,
 			);
 			productName = Financify;
 			productReference = AE19BFEB2DF8426B00879DED /* Financify.app */;
@@ -163,6 +172,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				AE7B1EB22E0F0BF1008E44C5 /* XCRemoteSwiftPackageReference "SwiftLintPlugins" */,
+				AEF09FB52E24663000DE12A8 /* XCRemoteSwiftPackageReference "Alamofire" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = AE19BFEC2DF8426B00879DED /* Products */;
@@ -509,7 +519,28 @@
 				minimumVersion = 0.59.1;
 			};
 		};
+		AEF09FB52E24663000DE12A8 /* XCRemoteSwiftPackageReference "Alamofire" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Alamofire/Alamofire.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.10.2;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		AEF09FB92E24688B00DE12A8 /* Alamofire */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AEF09FB52E24663000DE12A8 /* XCRemoteSwiftPackageReference "Alamofire" */;
+			productName = Alamofire;
+		};
+		AEF09FBB2E24688B00DE12A8 /* AlamofireDynamic */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AEF09FB52E24663000DE12A8 /* XCRemoteSwiftPackageReference "Alamofire" */;
+			productName = AlamofireDynamic;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = AE19BFE32DF8426B00879DED /* Project object */;
 }
