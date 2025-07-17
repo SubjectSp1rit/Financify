@@ -70,8 +70,8 @@ final class AnalysisPresenter: AnalysisPresentationLogic {
     }
     
     func presentLoading(isLoading: Bool) async {
-        DispatchQueue.main.async { [weak self] in
-            self?.view?.displayLoading(isLoading: isLoading)
+        DispatchQueue.main.async { [weak view] in
+            view?.displayLoading(isLoading: isLoading)
         }
     }
 }
