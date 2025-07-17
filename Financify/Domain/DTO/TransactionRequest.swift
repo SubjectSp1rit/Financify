@@ -1,6 +1,6 @@
 import Foundation
 
-struct TransactionRequest: Encodable {
+struct TransactionRequest: Codable {
     var accountId: Int
     var categoryId: Int
     var amount: Decimal
@@ -15,6 +15,25 @@ extension TransactionRequest {
         case amount
         case transactionDate
         case comment
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        accountId = try container.decode(Int.self, forKey: .accountId)
+        categoryId = try container.decode(Int.self, forKey: .categoryId)
+        comment = try container.decode(String.self, forKey: .comment)
+
+        let amountString = try container.decode(String.self, forKey: .amount)
+        guard let decimalAmount = Decimal(string: amountString) else {
+            throw DecodingError.dataCorruptedError(forKey: .amount, in: container, debugDescription: "Amount string is not a valid decimal.")
+        }
+        amount = decimalAmount
+
+        let dateString = try container.decode(String.self, forKey: .transactionDate)
+        guard let date = ISO8601DateFormatter.shmr.dateNormalized(from: dateString) else {
+            throw DecodingError.dataCorruptedError(forKey: .transactionDate, in: container, debugDescription: "Date string is not a valid ISO8601 date.")
+        }
+        transactionDate = date
     }
 
     func encode(to encoder: Encoder) throws {

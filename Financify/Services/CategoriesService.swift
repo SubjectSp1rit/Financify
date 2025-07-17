@@ -1,4 +1,5 @@
 import Foundation
+import SwiftData
 
 protocol CategoriesServiceLogic: Actor {
     func getAllCategories() async throws -> [Category]
@@ -8,24 +9,55 @@ protocol CategoriesServiceLogic: Actor {
 final actor CategoriesService: CategoriesServiceLogic {
     // MARK: - DI
     let client: NetworkClient
+    private let reachability: NetworkReachabilityLogic
+    private let modelContext: ModelContext
     
     // MARK: - Lifecycle
-    init(client: NetworkClient = NetworkClient()) {
+    init(
+        client: NetworkClient = NetworkClient(),
+        reachability: NetworkReachabilityLogic,
+        modelContext: ModelContext
+    ) {
         self.client = client
+        self.reachability = reachability
+        self.modelContext = modelContext
     }
     
     // MARK: - Methods
     func getAllCategories() async throws -> [Category] {
-        try await categories()
+        if reachability.currentStatus == .online {
+            do {
+                let categories: [Category] = try await client.request(.categoriesGET, method: .get)
+                try await updateLocalStore(with: categories)
+                return categories
+            } catch {
+                print("Categories fetch failed while online. Falling back to local data. Error: \(error)")
+                return try await fetchLocalCategories()
+            }
+        } else {
+            return try await fetchLocalCategories()
+        }
     }
     
     func getCategories(by direction: Direction) async throws -> [Category] {
-        try await categories().filter { $0.direction == direction }
+        let allCategories = try await getAllCategories()
+        return allCategories.filter { $0.direction == direction }
     }
     
     // MARK: - Private Methods
-    private func categories() async throws -> [Category] {
-        let response: [Category] = try await client.request(.categoriesGET, method: .get)
-        return response
+    private func fetchLocalCategories() async throws -> [Category] {
+        let descriptor = FetchDescriptor<PersistentCategory>()
+        let persistent = try modelContext.fetch(descriptor)
+        return persistent.map { $0.toDomain() }
+    }
+    
+    private func updateLocalStore(with categories: [Category]) async throws {
+        try modelContext.delete(model: PersistentCategory.self)
+        try modelContext.save()
+        
+        for category in categories {
+            modelContext.insert(PersistentCategory(from: category))
+        }
+        try modelContext.save()
     }
 }

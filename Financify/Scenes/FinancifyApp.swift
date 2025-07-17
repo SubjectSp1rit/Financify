@@ -8,6 +8,7 @@ struct FinancifyApp: App {
         WindowGroup {
             MainTabView()
                 .environmentObject(dependencies)
+                .modelContainer(dependencies.modelContainer)
         }
     }
 }

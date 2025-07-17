@@ -13,13 +13,11 @@ struct BalanceView: View {
     
     // MARK: - Lifecycle
     init(bankAccountService: BankAccountServiceLogic,
-         categoriesService: CategoriesServiceLogic,
-         transactionsService: TransactionsServiceLogic
+         reachability: NetworkReachabilityLogic
     ) {
         let vm = BalanceViewModel(
             bankAccountService: bankAccountService,
-            categoriesService: categoriesService,
-            transactionsService: transactionsService
+            reachability: reachability
         )
         _viewModel = StateObject(wrappedValue: vm)
     }
@@ -68,6 +66,11 @@ struct BalanceView: View {
                 }
             }
             .task { await viewModel.refreshBalance() }
+            .alert("Оффлайн-режим", isPresented: $viewModel.shouldShowOfflineAlert) {
+                Button("Ок", role: .cancel) { }
+            } message: {
+                Text("Вы не подключены к сети. Баланс может быть неактуален, а изменения будут сохранены локально и синхронизированы позже.")
+            }
         }
         .tint(.secondAccent)
     }

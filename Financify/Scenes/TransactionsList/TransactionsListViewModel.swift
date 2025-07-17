@@ -1,3 +1,5 @@
+// Financify/Financify/Scenes/TransactionsList/TransactionsListViewModel.swift
+
 import SwiftUI
 
 @MainActor
@@ -6,11 +8,16 @@ final class TransactionsListViewModel: ObservableObject {
     let categoriesService: CategoriesServiceLogic
     let transactionsService: TransactionsServiceLogic
     let bankAccountService: BankAccountServiceLogic
+    private let reachability: NetworkReachabilityLogic
     
     // MARK: - Published
     @Published private(set) var categories: [Int:Category] = [:]
     @Published private(set) var transactions: [Transaction] = []
+    
     @Published var isLoading: Bool = false
+    @Published var isSyncing: Bool = false
+    @Published var isOffline: Bool = false
+    @Published var shouldShowOfflineAlert: Bool = false
     
     @Published var selectedSortOption: SortOption = .newestFirst {
         didSet {
@@ -26,41 +33,60 @@ final class TransactionsListViewModel: ObservableObject {
     }
     
     let direction: Direction
+    private var networkStatusTask: Task<Void, Never>? = nil
     
     // MARK: - Lifecycle
     init(direction: Direction,
          categoriesService: CategoriesServiceLogic,
          transactionsService: TransactionsServiceLogic,
-         bankAccountService: BankAccountServiceLogic
+         bankAccountService: BankAccountServiceLogic,
+         reachability: NetworkReachabilityLogic
     ) {
         self.direction = direction
         self.categoriesService = categoriesService
         self.transactionsService = transactionsService
         self.bankAccountService = bankAccountService
+        self.reachability = reachability
+        
+        self.isOffline = reachability.currentStatus == .offline
+        
+        listenForNetworkStatusChanges()
+    }
+    
+    deinit {
+        networkStatusTask?.cancel()
     }
     
     // MARK: - Methods
     func refresh() async {
+        if reachability.currentStatus == .online {
+            isSyncing = true
+        }
         isLoading = true
-        defer { isLoading = false }
+        
+        defer {
+            isLoading = false
+            isSyncing = false
+        }
 
         do {
-            let account = try await bankAccountService.primaryAccount()
-            currency = Currency(jsonTitle: account.currency)
-
-            let cats = try await categoriesService.getCategories(by: direction)
-            categories = Dictionary(uniqueKeysWithValues: cats.map { ($0.id, $0) })
-
+            async let accountTask = bankAccountService.primaryAccount()
+            async let categoriesTask = categoriesService.getCategories(by: direction)
+            
+            let (account, cats) = try await (accountTask, categoriesTask)
+            
+            self.currency = Currency(jsonTitle: account.currency)
+            self.categories = Dictionary(uniqueKeysWithValues: cats.map { ($0.id, $0) })
+            
             let calendar = Calendar.current
             let startOfDay = calendar.startOfDay(for: Date())
-            let endOfDay   = calendar.date(byAdding: .day, value: 1, to: startOfDay)!
-                                .addingTimeInterval(-1)
+            let endOfDay   = calendar.date(byAdding: .day, value: 1, to: startOfDay)!.addingTimeInterval(-1)
                 
             let allToday = try await transactionsService.getAllTransactions {
                 (startOfDay...endOfDay).contains($0.transactionDate)
             }
             
-            transactions = allToday.filter {
+            self.transactions = allToday.filter {
                 guard let cat = categories[$0.categoryId] else { return false }
                 return direction == .income ? cat.isIncome : !cat.isIncome
             }
@@ -71,26 +97,32 @@ final class TransactionsListViewModel: ObservableObject {
             case .amountDescending: transactions.sort { $0.amount > $1.amount }
             case .amountAscending:  transactions.sort { $0.amount < $1.amount }
             }
-        } catch NetworkError.serverError(let statusCode, let data) {
-            print("Ошибка сервера – статус \(statusCode)")
-            if let data = data,
-               let body = String(data: data, encoding: .utf8) {
-                print("Тело ответа сервера:\n\(body)")
-            }
-        } catch NetworkError.encodingFailed(let error) {
-            print("Не удалось закодировать запрос:", error.localizedDescription)
-        } catch NetworkError.decodingFailed(let error) {
-            print("Не удалось декодировать ответ:", error.localizedDescription)
-        } catch NetworkError.missingAPIToken {
-            print("API‑токен не найден. Проверьте, что ключ задан в xcconfig")
-        } catch NetworkError.underlying(let error) {
-            print("Сетевая ошибка или другое исключение:", error.localizedDescription)
         } catch {
-            print("Непредвиденная ошибка: \(error.localizedDescription)")
+            print("Failed to refresh TransactionsListViewModel: \(error.localizedDescription)")
         }
     }
     
     func category(for transaction: Transaction) -> Category? {
         categories[transaction.categoryId]
+    }
+    
+    // MARK: - Private Methods
+    private func listenForNetworkStatusChanges() {
+        networkStatusTask = Task {
+            for await status in reachability.statusStream {
+                let wasOffline = self.isOffline
+                self.isOffline = status == .offline
+                
+                // Показываем алерт только при переходе из онлайна в оффлайн
+                if !wasOffline && self.isOffline {
+                    self.shouldShowOfflineAlert = true
+                }
+                
+                // Если мы вернулись в онлайн, запускаем обновление для синхронизации
+                if wasOffline && !self.isOffline {
+                    await self.refresh()
+                }
+            }
+        }
     }
 }

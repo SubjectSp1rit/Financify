@@ -189,6 +189,42 @@ final class NetworkClient {
             throw NetworkError.underlying(afError)
         }
     }
+    
+    /// Запрос с готовым URLRequest и БЕЗ ответа (для синхронизации)
+    @discardableResult
+    func requestStatus(with urlRequest: URLRequest) async throws -> Int {
+        var finalRequest = urlRequest
+        if finalRequest.value(forHTTPHeaderField: "Authorization") == nil {
+            let bearer = try bearerToken()
+            finalRequest.headers.add(name: "Authorization", value: bearer)
+        }
+        if finalRequest.value(forHTTPHeaderField: "Accept") == nil {
+            finalRequest.headers.add(name: "Accept", value: "application/json")
+        }
+        
+        let dataRequest = session.request(finalRequest).validate()
+        
+        do {
+            _ = try await dataRequest.serializingData().value
+            
+            guard let code = dataRequest.response?.statusCode else {
+                throw NetworkError.underlying(NSError(
+                    domain: "NetworkClient",
+                    code: -1,
+                    userInfo: [NSLocalizedDescriptionKey: "No HTTPURLResponse"]
+                ))
+            }
+            return code
+            
+        } catch let afError as AFError {
+            if case let .responseValidationFailed(reason) = afError,
+               case let .unacceptableStatusCode(statusCode) = reason {
+                throw NetworkError.serverError(statusCode: statusCode,
+                                               data: afError.underlyingData)
+            }
+            throw NetworkError.underlying(afError)
+        }
+    }
 
     // Private Methods
     private func encode<T: Encodable>(_ value: T, with encoder: JSONEncoder) async throws -> Data {

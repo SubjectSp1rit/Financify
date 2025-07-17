@@ -24,7 +24,8 @@ struct MainTabView: View {
                 direction: .outcome,
                 categoriesService: dependencies.categoryService,
                 transactionsService: dependencies.transactionService,
-                bankAccountService: dependencies.bankAccountService
+                bankAccountService: dependencies.bankAccountService,
+                reachability: dependencies.networkReachabilityService
             )
                 .tabItem {
                     Image(.downtrend)
@@ -36,7 +37,8 @@ struct MainTabView: View {
                 direction: .income,
                 categoriesService: dependencies.categoryService,
                 transactionsService: dependencies.transactionService,
-                bankAccountService: dependencies.bankAccountService
+                bankAccountService: dependencies.bankAccountService,
+                reachability: dependencies.networkReachabilityService
             )
                 .tabItem {
                     Image(.uptrend)
@@ -47,8 +49,7 @@ struct MainTabView: View {
             // Счет
             BalanceView(
                 bankAccountService: dependencies.bankAccountService,
-                categoriesService: dependencies.categoryService,
-                transactionsService: dependencies.transactionService
+                reachability: dependencies.networkReachabilityService
             )
                 .tabItem {
                     Image(.calculator)

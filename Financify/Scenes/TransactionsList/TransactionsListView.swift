@@ -11,13 +11,15 @@ struct TransactionsListView: View {
         direction: Direction,
         categoriesService: CategoriesServiceLogic,
         transactionsService: TransactionsServiceLogic,
-        bankAccountService: BankAccountServiceLogic
+        bankAccountService: BankAccountServiceLogic,
+        reachability: NetworkReachabilityLogic
     ) {
         let vm = TransactionsListViewModel(
             direction: direction,
             categoriesService: categoriesService,
             transactionsService: transactionsService,
-            bankAccountService: bankAccountService
+            bankAccountService: bankAccountService,
+            reachability: reachability
         )
         _viewModel = StateObject(wrappedValue: vm)
     }
@@ -67,8 +69,9 @@ struct TransactionsListView: View {
             }
             .animation(.easeInOut(duration: 0.3), value: viewModel.transactions)
             .overlay(alignment: .center) {
-                // Пока данные грузятся - показываем анимацию загрузки по центру экрана
-                if viewModel.isLoading && viewModel.transactions.isEmpty {
+                // Показываем LoadingAnimation только если мы онлайн и грузим данные,
+                // но еще не получили их. В оффлайне данные должны появиться мгновенно из базы
+                if viewModel.isLoading && !viewModel.isOffline && viewModel.transactions.isEmpty {
                     LoadingAnimation()
                 }
             }
@@ -88,6 +91,14 @@ struct TransactionsListView: View {
             }
             .navigationTitle(viewModel.direction.title)
             .toolbar {
+                // Показываем ProgressView во время синхронизации
+                if viewModel.isSyncing {
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        ProgressView()
+                            .progressViewStyle(.circular)
+                    }
+                }
+                
                 ToolbarItem(placement: .navigationBarTrailing) {
                     NavigationLink(
                         destination: HistoryView(
@@ -100,6 +111,11 @@ struct TransactionsListView: View {
                         Image(systemName: .clockIconName)
                     }
                 }
+            }
+            .alert("Оффлайн-режим", isPresented: $viewModel.shouldShowOfflineAlert) {
+                Button("Ок", role: .cancel) { }
+            } message: {
+                Text("Вы не подключены к сети. Данные могут быть неактуальны, а изменения будут сохранены локально и синхронизированы позже.")
             }
             .task {
                 await viewModel.refresh() }
