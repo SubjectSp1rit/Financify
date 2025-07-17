@@ -1,5 +1,5 @@
 {
-  "originHash" : "81670581824b94221e4bfd2889692d2a04cfb8e17ec4e5ef3c09903c070fb095",
+  "originHash" : "c991eccc3c90026e2867216ce064f612f045523a3e85ccc58d9da6e2c89d9e47",
   "pins" : [
     {
       "identity" : "alamofire",
@@ -11,12 +11,12 @@
       }
     },
     {
-      "identity" : "swiftlintplugins",
+      "identity" : "skeletonview",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/SimplyDanny/SwiftLintPlugins",
+      "location" : "https://github.com/Juanpe/SkeletonView",
       "state" : {
-        "revision" : "8545ddf4de043e6f2051c5cf204f39ef778ebf6b",
-        "version" : "0.59.1"
+        "revision" : "2f5274827d310e32c09325dd3e0007120940988e",
+        "version" : "1.31.0"
       }
     }
   ],

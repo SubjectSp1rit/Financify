@@ -23,6 +23,12 @@ struct CategoriesView: View {
                     }
                 }
             }
+            .overlay(alignment: .center) {
+                // Пока данные грузятся - показываем анимацию загрузки по центру экрана
+                if viewModel.isLoading && viewModel.categories.isEmpty {
+                    LoadingAnimation()
+                }
+            }
             .scrollDismissesKeyboard(.immediately)
             .navigationTitle(String.categoriesTitle)
             .searchable(

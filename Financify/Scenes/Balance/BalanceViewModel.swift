@@ -38,36 +38,33 @@ final class BalanceViewModel: ObservableObject {
     }
     
     // MARK: - Methods
-    /// Загружает аккаунт + все транзакции, фильтрует по updatedAt и пересчитывает balance
     func refreshBalance() async {
         isLoading = true
         defer { isLoading = false }
 
         do {
-            let cats = try await categoriesService.getAllCategories()
-            let categoryMap = Dictionary(uniqueKeysWithValues: cats.map { ($0.id, $0) })
-
             let account = try await bankAccountService.primaryAccount()
 
-            let allTransactions = try await transactionsService.getAllTransactions()
-
-            // Оставляем только те транзакции, которые проведены после updatedAt
-            let relevant = allTransactions.filter { $0.transactionDate > account.updatedAt }
-
-            // Считаем актуальный баланс
-            let delta = relevant.reduce(Decimal(0)) { acc, tx in
-                guard let cat = categoryMap[tx.categoryId] else { return acc }
-                return cat.direction == .income
-                    ? acc + tx.amount
-                    : acc - tx.amount
-            }
-
-            total = account.balance + delta
+            total = account.balance
             
             selectedCurrency = Currency(jsonTitle: account.currency)
 
+        } catch NetworkError.serverError(let statusCode, let data) {
+            print("Ошибка сервера – статус \(statusCode)")
+            if let data = data,
+               let body = String(data: data, encoding: .utf8) {
+                print("Тело ответа сервера:\n\(body)")
+            }
+        } catch NetworkError.encodingFailed(let error) {
+            print("Не удалось закодировать запрос:", error.localizedDescription)
+        } catch NetworkError.decodingFailed(let error) {
+            print("Не удалось декодировать ответ:", error.localizedDescription)
+        } catch NetworkError.missingAPIToken {
+            print("API‑токен не найден. Проверьте, что ключ задан в xcconfig")
+        } catch NetworkError.underlying(let error) {
+            print("Сетевая ошибка или другое исключение:", error.localizedDescription)
         } catch {
-            print(error.localizedDescription)
+            print("Непредвиденная ошибка: \(error.localizedDescription)")
         }
     }
     

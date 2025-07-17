@@ -15,7 +15,7 @@ struct TransactionCell: View {
             
             VStack(alignment: .leading, spacing: 2) {
                 Text(category?.name ?? .unknownCategoryName)
-                if let comment = transaction.comment {
+                if let comment = transaction.comment, comment != "" {
                     Text(comment)
                         .font(.system(size: .commentFontSize))
                         .foregroundColor(.gray)

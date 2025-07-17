@@ -1,31 +1,21 @@
 import Foundation
 
-struct Transaction: Codable, Identifiable, Equatable {
-    let id: Int
-    let accountId: Int
-    let categoryId: Int
+struct TransactionResponse: Decodable, Identifiable {
+    var id: Int
+    var account: AccountBrief
+    var category: Category
     var amount: Decimal
     var transactionDate: Date
     var comment: String?
-    let createdAt: Date
-    let updatedAt: Date
+    var createdAt: Date
+    var updatedAt: Date
 }
 
-extension Transaction {
-    func convertToTransactionRequest() -> TransactionRequest {
-        return TransactionRequest(
-            accountId:          self.accountId,
-            categoryId:         self.categoryId,
-            amount:             self.amount,
-            transactionDate:    self.transactionDate,
-            comment:            self.comment ?? ""
-        )
-    }
-}
-
-extension Transaction {
+extension TransactionResponse {
     private enum CodingKeys: String, CodingKey {
-        case id, accountId, categoryId
+        case id
+        case account
+        case category
         case amount
         case transactionDate
         case comment
@@ -35,15 +25,15 @@ extension Transaction {
 
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
-        id         = try c.decode(Int.self, forKey: .id)
-        accountId  = try c.decode(Int.self, forKey: .accountId)
-        categoryId = try c.decode(Int.self, forKey: .categoryId)
+        id       = try c.decode(Int.self,          forKey: .id)
+        account  = try c.decode(AccountBrief.self, forKey: .account)
+        category = try c.decode(Category.self,     forKey: .category)
 
         let amtStr = try c.decode(String.self, forKey: .amount)
         guard let amt = Decimal(string: amtStr) else {
             throw DecodingError.dataCorruptedError(
                 forKey: .amount, in: c,
-                debugDescription: "Невозможно преобразовать amount из '\(amtStr)'"
+                debugDescription: "Невозможно преобразовать amount '\(amtStr)' в Decimal"
             )
         }
         amount = amt
@@ -73,31 +63,20 @@ extension Transaction {
         createdAt = created
         updatedAt = updated
     }
+}
 
-    func encode(to encoder: Encoder) throws {
-        var c = encoder.container(keyedBy: CodingKeys.self)
-        try c.encode(id,        forKey: .id)
-        try c.encode(accountId, forKey: .accountId)
-        try c.encode(categoryId, forKey: .categoryId)
-
-        let amtString = NSDecimalNumber(decimal: amount).stringValue
-        try c.encode(amtString, forKey: .amount)
-
-        try c.encode(
-            ISO8601DateFormatter.shmr.string(from: transactionDate),
-            forKey: .transactionDate
-        )
-
-        try c.encodeIfPresent(comment, forKey: .comment)
-
-        try c.encode(
-            ISO8601DateFormatter.shmr.string(from: createdAt),
-            forKey: .createdAt
-        )
-        try c.encode(
-            ISO8601DateFormatter.shmr.string(from: updatedAt),
-            forKey: .updatedAt
+// TransactionResponse -> Transaction
+extension TransactionResponse {
+    func convertToTransaction() -> Transaction {
+        return Transaction(
+            id:                 self.id,
+            accountId:          self.account.id,
+            categoryId:         self.category.id,
+            amount:             self.amount,
+            transactionDate:    self.transactionDate,
+            comment:            self.comment,
+            createdAt:          self.createdAt,
+            updatedAt:          self.updatedAt
         )
     }
 }
-

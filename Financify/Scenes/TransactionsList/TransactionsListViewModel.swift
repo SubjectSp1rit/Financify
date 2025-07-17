@@ -55,7 +55,7 @@ final class TransactionsListViewModel: ObservableObject {
             let startOfDay = calendar.startOfDay(for: Date())
             let endOfDay   = calendar.date(byAdding: .day, value: 1, to: startOfDay)!
                                 .addingTimeInterval(-1)
-
+                
             let allToday = try await transactionsService.getAllTransactions {
                 (startOfDay...endOfDay).contains($0.transactionDate)
             }
@@ -71,8 +71,22 @@ final class TransactionsListViewModel: ObservableObject {
             case .amountDescending: transactions.sort { $0.amount > $1.amount }
             case .amountAscending:  transactions.sort { $0.amount < $1.amount }
             }
+        } catch NetworkError.serverError(let statusCode, let data) {
+            print("Ошибка сервера – статус \(statusCode)")
+            if let data = data,
+               let body = String(data: data, encoding: .utf8) {
+                print("Тело ответа сервера:\n\(body)")
+            }
+        } catch NetworkError.encodingFailed(let error) {
+            print("Не удалось закодировать запрос:", error.localizedDescription)
+        } catch NetworkError.decodingFailed(let error) {
+            print("Не удалось декодировать ответ:", error.localizedDescription)
+        } catch NetworkError.missingAPIToken {
+            print("API‑токен не найден. Проверьте, что ключ задан в xcconfig")
+        } catch NetworkError.underlying(let error) {
+            print("Сетевая ошибка или другое исключение:", error.localizedDescription)
         } catch {
-            print(error.localizedDescription)
+            print("Непредвиденная ошибка: \(error.localizedDescription)")
         }
     }
     

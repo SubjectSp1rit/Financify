@@ -28,7 +28,15 @@ struct BalanceView: View {
         NavigationStack {
             List {
                 balanceSection
+                    .redacted(reason: viewModel.isLoading ? .placeholder : [])
                 currencySection
+                    .redacted(reason: viewModel.isLoading ? .placeholder : [])
+            }
+            .overlay(alignment: .center) {
+                // Пока данные грузятся - показываем анимацию загрузки по центру экрана
+                if viewModel.isLoading {
+                    LoadingAnimation()
+                }
             }
             .refreshable {  await viewModel.refreshBalance() }
             .scrollDismissesKeyboard(.immediately)

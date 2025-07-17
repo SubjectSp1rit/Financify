@@ -6,6 +6,14 @@ protocol CategoriesServiceLogic: Actor {
 }
 
 final actor CategoriesService: CategoriesServiceLogic {
+    // MARK: - DI
+    let client: NetworkClient
+    
+    // MARK: - Lifecycle
+    init(client: NetworkClient = NetworkClient()) {
+        self.client = client
+    }
+    
     // MARK: - Methods
     func getAllCategories() async throws -> [Category] {
         try await categories()
@@ -17,17 +25,7 @@ final actor CategoriesService: CategoriesServiceLogic {
     
     // MARK: - Private Methods
     private func categories() async throws -> [Category] {
-        [
-            Category(id: 0, name: "Аренда квартиры", emoji: "🏠", isIncome: false),
-            Category(id: 1, name: "Одежда", emoji: "👔", isIncome: false),
-            Category(id: 2, name: "На собачку", emoji: "🐕", isIncome: false),
-            Category(id: 3, name: "Ремонт квартиры", emoji: "⚒️", isIncome: false),
-            Category(id: 4, name: "Продукты", emoji: "🛒", isIncome: false),
-            Category(id: 5, name: "Спортзал", emoji: "🏈", isIncome: false),
-            Category(id: 6, name: "Медицина", emoji: "🫚", isIncome: false),
-            Category(id: 7, name: "Аптека", emoji: "💊", isIncome: false),
-            Category(id: 8, name: "Машина", emoji: "🚗", isIncome: false),
-            Category(id: 9, name: "Зарплата", emoji: "💸", isIncome: true)
-        ]
+        let response: [Category] = try await client.request(.categoriesGET, method: .get)
+        return response
     }
 }

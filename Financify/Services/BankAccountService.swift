@@ -8,30 +8,19 @@ protocol BankAccountServiceLogic: Actor {
 }
 
 final actor BankAccountService: BankAccountServiceLogic {
-    private var accounts: [BankAccount] = [
-        BankAccount(
-            id: 0,
-            userId: 0,
-            name: "Primary",
-            balance: 1337.00,
-            currency: "RUB",
-            createdAt: Date(),
-            updatedAt: Date().addingTimeInterval(-60 * 60 * 24 * 180) // 180 дней назад
-        ),
-        BankAccount(
-            id: 1,
-            userId: 0,
-            name: "Secondary",
-            balance: 0.00,
-            currency: "USD",
-            createdAt: Date(),
-            updatedAt: Date()
-        )
-    ]
+    // MARK: - DI
+    private let client: NetworkClient
+    
+    // MARK: - Lifecycle
+    init(client: NetworkClient = NetworkClient()) {
+        self.client = client
+    }
     
     // MARK: - Methods
     func primaryAccount() async throws -> BankAccount {
-        guard let primaryAccount = accounts.first else {
+        let list = try await fetchAccounts()
+        
+        guard let primaryAccount = list.first else {
             throw BankAccountServicesError.accountNotExists("Ошибка чтении основного счета: отсутствует банковский счет")
         }
         
@@ -39,19 +28,19 @@ final actor BankAccountService: BankAccountServiceLogic {
     }
     
     func updatePrimaryAccount(with account: BankAccount) async throws {
-        guard !accounts.isEmpty else {
-            throw BankAccountServicesError.accountNotExists("Ошибка изменения основного счета: отсутствует банковский счет")
-        }
+        let request: AccountUpdateRequest = account.convertToAccountUpdateRequest()
         
-        accounts[0] = account
+        let _: BankAccount = try await client.request(
+            .accountsPUTby(id: account.id),
+            method: .put,
+            body: request
+        )
     }
     
     func updatePrimaryBalance(with balance: Decimal) async throws {
-        guard let primaryAccount = accounts.first else {
-            throw BankAccountServicesError.accountNotExists("Ошибка изменения баланса основного счета: отсутствует банковский счет")
-        }
-        
+        let primaryAccount = try await primaryAccount()
         let now = Date()
+        
         let newAccount = BankAccount(
             id: primaryAccount.id,
             userId: primaryAccount.userId,
@@ -66,9 +55,7 @@ final actor BankAccountService: BankAccountServiceLogic {
     }
     
     func updatePrimaryCurrency(with currency: Currency) async throws {
-        guard let primaryAccount = accounts.first else {
-            throw BankAccountServicesError.accountNotExists("Ошибка изменения валюты основного счета: отсутствует банковский счет")
-        }
+        let primaryAccount = try await primaryAccount()
         
         let newAccount = BankAccount(
             id: primaryAccount.id,
@@ -81,5 +68,11 @@ final actor BankAccountService: BankAccountServiceLogic {
         )
         
         try await updatePrimaryAccount(with: newAccount)
+    }
+    
+    // MARK: - Private Methods
+    private func fetchAccounts() async throws  -> [BankAccount] {
+        let accounts: [BankAccount] = try await client.request(.accountsGET, method: .get)
+        return accounts
     }
 }

@@ -7,8 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		AEF09FBA2E24688B00DE12A8 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = AEF09FB92E24688B00DE12A8 /* Alamofire */; };
-		AEF09FBC2E24688B00DE12A8 /* AlamofireDynamic in Frameworks */ = {isa = PBXBuildFile; productRef = AEF09FBB2E24688B00DE12A8 /* AlamofireDynamic */; };
+		AE3DEA062E25BB9A00DE5079 /* AlamofireDynamic in Frameworks */ = {isa = PBXBuildFile; productRef = AE3DEA052E25BB9A00DE5079 /* AlamofireDynamic */; };
+		AEBDFB712E29401D005F02C1 /* SkeletonView in Frameworks */ = {isa = PBXBuildFile; productRef = AEBDFB702E29401D005F02C1 /* SkeletonView */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -20,6 +20,19 @@
 			remoteInfo = Financify;
 		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		AE632DD32E25B947005EA0C4 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		AE07DD342DFB0FC700E128D9 /* UnitTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = UnitTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -64,8 +77,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AEF09FBA2E24688B00DE12A8 /* Alamofire in Frameworks */,
-				AEF09FBC2E24688B00DE12A8 /* AlamofireDynamic in Frameworks */,
+				AEBDFB712E29401D005F02C1 /* SkeletonView in Frameworks */,
+				AE3DEA062E25BB9A00DE5079 /* AlamofireDynamic in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -124,6 +137,7 @@
 				AE19BFE82DF8426B00879DED /* Frameworks */,
 				AE19BFE92DF8426B00879DED /* Resources */,
 				AE7B1EB32E0F0C13008E44C5 /* ShellScript */,
+				AE632DD32E25B947005EA0C4 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -134,8 +148,8 @@
 			);
 			name = Financify;
 			packageProductDependencies = (
-				AEF09FB92E24688B00DE12A8 /* Alamofire */,
-				AEF09FBB2E24688B00DE12A8 /* AlamofireDynamic */,
+				AE3DEA052E25BB9A00DE5079 /* AlamofireDynamic */,
+				AEBDFB702E29401D005F02C1 /* SkeletonView */,
 			);
 			productName = Financify;
 			productReference = AE19BFEB2DF8426B00879DED /* Financify.app */;
@@ -171,8 +185,8 @@
 			mainGroup = AE19BFE22DF8426B00879DED;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				AE7B1EB22E0F0BF1008E44C5 /* XCRemoteSwiftPackageReference "SwiftLintPlugins" */,
-				AEF09FB52E24663000DE12A8 /* XCRemoteSwiftPackageReference "Alamofire" */,
+				AE3DEA042E25BB9A00DE5079 /* XCRemoteSwiftPackageReference "Alamofire" */,
+				AEBDFB6F2E29401D005F02C1 /* XCRemoteSwiftPackageReference "SkeletonView" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = AE19BFEC2DF8426B00879DED /* Products */;
@@ -511,15 +525,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		AE7B1EB22E0F0BF1008E44C5 /* XCRemoteSwiftPackageReference "SwiftLintPlugins" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/SimplyDanny/SwiftLintPlugins";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 0.59.1;
-			};
-		};
-		AEF09FB52E24663000DE12A8 /* XCRemoteSwiftPackageReference "Alamofire" */ = {
+		AE3DEA042E25BB9A00DE5079 /* XCRemoteSwiftPackageReference "Alamofire" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Alamofire/Alamofire.git";
 			requirement = {
@@ -527,18 +533,26 @@
 				minimumVersion = 5.10.2;
 			};
 		};
+		AEBDFB6F2E29401D005F02C1 /* XCRemoteSwiftPackageReference "SkeletonView" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Juanpe/SkeletonView";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.31.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		AEF09FB92E24688B00DE12A8 /* Alamofire */ = {
+		AE3DEA052E25BB9A00DE5079 /* AlamofireDynamic */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = AEF09FB52E24663000DE12A8 /* XCRemoteSwiftPackageReference "Alamofire" */;
-			productName = Alamofire;
-		};
-		AEF09FBB2E24688B00DE12A8 /* AlamofireDynamic */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = AEF09FB52E24663000DE12A8 /* XCRemoteSwiftPackageReference "Alamofire" */;
+			package = AE3DEA042E25BB9A00DE5079 /* XCRemoteSwiftPackageReference "Alamofire" */;
 			productName = AlamofireDynamic;
+		};
+		AEBDFB702E29401D005F02C1 /* SkeletonView */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AEBDFB6F2E29401D005F02C1 /* XCRemoteSwiftPackageReference "SkeletonView" */;
+			productName = SkeletonView;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

@@ -48,7 +48,7 @@ struct TransactionsListView: View {
                                 category: viewModel.category(for: transaction),
                                 currency: viewModel.currency
                             )
-                            .frxame(maxWidth: .infinity, alignment: .leading)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                             .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)

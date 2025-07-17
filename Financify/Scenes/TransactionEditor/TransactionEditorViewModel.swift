@@ -105,43 +105,64 @@ final class TransactionEditorViewModel: ObservableObject {
             showAlert = true
             return
         }
-
-        let dateTime = Calendar.current.date(
-            bySettingHour: Calendar.current.component(.hour, from: time),
-            minute: Calendar.current.component(.minute, from: time),
-            second: Constants.DateTime.zeroSeconds,
-            of: date
-        )!
+        
+        let calendar = Calendar.current
+        let dateComps = calendar.dateComponents([.year, .month, .day], from: date)
+        let timeComps = calendar.dateComponents([.hour, .minute, .nanosecond], from: time)
+        var comps = DateComponents()
+        comps.year       = dateComps.year
+        comps.month      = dateComps.month
+        comps.day        = dateComps.day
+        comps.hour       = timeComps.hour
+        comps.minute     = timeComps.minute
+        comps.nanosecond = timeComps.nanosecond
+        
+        let dateTime = Calendar.current.date(from: comps) ?? Date()
 
         do {
-            let newId: Int
-            if let existing = editingTransaction?.id {
-                newId = existing
-            } else {
-                let allTx = try await transactionsService.getAllTransactions { _ in true }
-                let maxId = allTx.map(\.id).max() ?? .zero
-                newId = maxId + Constants.Transaction.idIncrement
-            }
-
-            let tx = Transaction(
-                id: newId,
-                accountId: Constants.Transaction.defaultAccountId,
+            let primaryAccount = try await bankAccountService.primaryAccount()
+            
+            let transactionRequest: TransactionRequest = TransactionRequest(
+                accountId: primaryAccount.id,
                 categoryId: selectedCategory!.id,
                 amount: amountDecimal(),
                 transactionDate: dateTime,
-                comment: comment.isEmpty ? nil : comment,
-                createdAt: editingTransaction?.createdAt ?? Date(),
-                updatedAt: Date()
+                comment: comment.isEmpty ? "" : comment
             )
 
             if isNew {
-                try await transactionsService.addTransaction(tx)
+                try await transactionsService.addTransaction(transactionRequest)
             } else {
-                try await transactionsService.updateTransaction(tx)
+                try await transactionsService.updateTransaction(transactionRequest, with: editingTransaction!.id)
             }
+        } catch NetworkError.serverError(let statusCode, let data) {
+            alertMessage = Constants.ErrorMessages.saveFailed
+            showAlert = true
+            print("Ошибка сервера – статус \(statusCode)")
+            if let data = data,
+               let body = String(data: data, encoding: .utf8) {
+                print("Тело ответа сервера:\n\(body)")
+            }
+        } catch NetworkError.encodingFailed(let error) {
+            alertMessage = Constants.ErrorMessages.saveFailed
+            showAlert = true
+            print("Не удалось закодировать запрос:", error.localizedDescription)
+        } catch NetworkError.decodingFailed(let error) {
+            alertMessage = Constants.ErrorMessages.saveFailed
+            showAlert = true
+            print("Не удалось декодировать ответ:", error.localizedDescription)
+        } catch NetworkError.missingAPIToken {
+            alertMessage = Constants.ErrorMessages.saveFailed
+            showAlert = true
+            print("API‑токен не найден. Проверьте, что ключ задан в xcconfig")
+        } catch NetworkError.underlying(let error) {
+            alertMessage = Constants.ErrorMessages.saveFailed
+            showAlert = true
+            print("Сетевая ошибка или другое исключение:", error.localizedDescription)
         } catch {
             alertMessage = Constants.ErrorMessages.saveFailed
             showAlert = true
+            print("Непредвиденная ошибка: \(error.localizedDescription)")
         }
     }
 
@@ -149,9 +170,34 @@ final class TransactionEditorViewModel: ObservableObject {
         guard let id = editingTransaction?.id else { return }
         do {
             try await transactionsService.deleteTransaction(byId: id)
+        } catch NetworkError.serverError(let statusCode, let data) {
+            alertMessage = Constants.ErrorMessages.deleteFailed
+            showAlert = true
+            print("Ошибка сервера – статус \(statusCode)")
+            if let data = data,
+               let body = String(data: data, encoding: .utf8) {
+                print("Тело ответа сервера:\n\(body)")
+            }
+        } catch NetworkError.encodingFailed(let error) {
+            alertMessage = Constants.ErrorMessages.deleteFailed
+            showAlert = true
+            print("Не удалось закодировать запрос:", error.localizedDescription)
+        } catch NetworkError.decodingFailed(let error) {
+            alertMessage = Constants.ErrorMessages.deleteFailed
+            showAlert = true
+            print("Не удалось декодировать ответ:", error.localizedDescription)
+        } catch NetworkError.missingAPIToken {
+            alertMessage = Constants.ErrorMessages.deleteFailed
+            showAlert = true
+            print("API‑токен не найден. Проверьте, что ключ задан в xcconfig")
+        } catch NetworkError.underlying(let error) {
+            alertMessage = Constants.ErrorMessages.deleteFailed
+            showAlert = true
+            print("Сетевая ошибка или другое исключение:", error.localizedDescription)
         } catch {
             alertMessage = Constants.ErrorMessages.deleteFailed
             showAlert = true
+            print("Непредвиденная ошибка: \(error.localizedDescription)")
         }
     }
 
@@ -164,7 +210,6 @@ final class TransactionEditorViewModel: ObservableObject {
 }
 
 // MARK: - Constants
-
 private enum Constants {
     enum Amount {
         static let defaultText: String = "0"
@@ -186,7 +231,6 @@ private enum Constants {
         static let zeroSeconds: Int = 0
     }
     enum Transaction {
-        static let defaultAccountId: Int = 0
         static let idIncrement: Int = 1
     }
 }

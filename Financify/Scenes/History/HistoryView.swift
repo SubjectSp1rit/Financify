@@ -30,6 +30,7 @@ struct HistoryView: View {
                     selection: $viewModel.fromDate,
                     displayedComponents: .date
                 )
+                .disabled(viewModel.isLoading)
                 .datePickerStyle(CustomDatePickerStyle())
                 
                 DatePicker(
@@ -37,6 +38,7 @@ struct HistoryView: View {
                     selection: $viewModel.toDate,
                     displayedComponents: .date
                 )
+                .disabled(viewModel.isLoading)
                 .datePickerStyle(CustomDatePickerStyle())
                 
                 SortCell(selectedOption: $viewModel.selectedSortOption)
@@ -46,6 +48,7 @@ struct HistoryView: View {
                     currency: viewModel.currency
                 )
             }
+            .redacted(reason: viewModel.isLoading ? .placeholder : [])
             
             Section(header:
                         Text(verbatim: .sectionHeaderText)

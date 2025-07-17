@@ -46,7 +46,7 @@ final class AnalysisPresenter: AnalysisPresentationLogic {
             let icon = String(cat.emoji)
             let title = cat.name
 
-            let comment = tx.comment?.isEmpty == false ? tx.comment : nil
+            let comment = tx.comment
 
             let amountStr = tx.amount.moneyFormatted + " " + currency.rawValue
 

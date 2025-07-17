@@ -6,12 +6,33 @@ enum APIEndpoint {
     static let baseURL = URL(string: "https://shmr-finance.ru/api/v1/")!
 
     // MARK: - Cases
-    case accountsGET
+    case accountsGET                                // Получить все счета пользователя
+    case accountsPOST                               // Создать новый счет
+    case accountsGETby(id: Int)                     // Получить счет по ID
+    case accountsPUTby(id: Int)                     // Обновить счет по ID
+    case accountsDELETEby(id: Int)                  // Удалить счет по ID
+    case categoriesGET                              // Получить все категории
+    case categoriesTypeGET(isIncome: Bool)          // Получить категории по типу
+    case transactionsPOST                           // Создать новую транзакцию
+    case transactionsGETby(id: Int)                 // Получить транзакцию по ID
+    case transactionsPUTby(id: Int)                 // Обновить транзакцию по ID
+    case transactionsDELETEby(id: Int)              // Удалить транзакцию по ID
+    case transactionsAccountGETby(accountId: Int)   // Получить транзакции по ID счета
 
     var path: String {
         switch self {
-        case .accountsGET:
-            return "/accounts"
+        case .accountsGET:                              return "/accounts"
+        case .accountsPOST:                             return "/accounts"
+        case .accountsGETby(let id):                    return "/accounts/\(id)"
+        case .accountsPUTby(let id):                    return "/accounts/\(id)"
+        case .accountsDELETEby(let id):                 return "/accounts/\(id)"
+        case .categoriesGET:                            return "/categories"
+        case .categoriesTypeGET(let isIncome):          return "/categories/type/\(isIncome)"
+        case .transactionsPOST:                         return "/transactions"
+        case .transactionsGETby(let id):                return "/transactions/\(id)"
+        case .transactionsPUTby(let id):                return "/transactions/\(id)"
+        case .transactionsDELETEby(let id):             return "/transactions/\(id)"
+        case .transactionsAccountGETby(let accountId):  return "/transactions/account/\(accountId)/period"
         }
     }
 
@@ -55,6 +76,8 @@ final class NetworkClient {
     }
 
     // MARK: - Methods
+    
+    /// Запрос с телом и ответом
     @discardableResult
     func request<RequestBody: Encodable, ResponseBody: Decodable>(
         _ endpoint: APIEndpoint,
@@ -79,17 +102,91 @@ final class NetworkClient {
                 .validate() // Проверка статуса 200…299
                 .serializingData()
                 .value
-
             return try await decode(ResponseBody.self, from: data, using: decoder)
 
         } catch let afError as AFError {
             if case let .responseValidationFailed(reason) = afError,
                case let .unacceptableStatusCode(statusCode) = reason {
-                throw NetworkError.serverError(statusCode: statusCode, data: afError.underlyingData)
+                throw NetworkError.serverError(
+                    statusCode: statusCode,
+                    data: afError.underlyingData
+                )
             }
             throw NetworkError.underlying(afError)
         } catch {
             throw NetworkError.underlying(error)
+        }
+    }
+    
+    /// Запрос БЕЗ тела и с ответом
+    @discardableResult
+    func request<ResponseBody: Decodable>(
+        _ endpoint: APIEndpoint,
+        method: HTTPMethod,
+        decoder: JSONDecoder = .init()
+    ) async throws -> ResponseBody {
+        return try await request(
+            endpoint,
+            method: method,
+            body: Optional<EmptyRequest>.none,
+            encoder: JSONEncoder(),
+            decoder: decoder
+        )
+    }
+    
+    /// Запрос БЕЗ тела и БЕЗ ответа
+    @discardableResult
+    func requestStatus(
+        _ endpoint: APIEndpoint,
+        method: HTTPMethod,
+    ) async throws -> Int {
+        return try await requestStatus(
+            endpoint,
+            method: method,
+            body: Optional<EmptyRequest>.none,
+            encoder: JSONEncoder()
+        )
+    }
+    
+    /// Запрос с телом и БЕЗ ответа
+    @discardableResult
+    func requestStatus<RequestBody: Encodable>(
+        _ endpoint: APIEndpoint,
+        method: HTTPMethod,
+        body: RequestBody? = nil,
+        encoder: JSONEncoder = .init()
+    ) async throws -> Int {
+        var urlRequest = URLRequest(url: endpoint.url)
+        urlRequest.method  = method
+        urlRequest.headers = try makeHeaders()
+        
+        if let body = body {
+            let data = try await encode(body, with: encoder)
+            urlRequest.httpBody = data
+            urlRequest.headers.add(.contentType("application/json"))
+        }
+
+        let dataRequest = session.request(urlRequest).validate()
+        
+        do {
+            _ = try await dataRequest.serializingData().value
+            
+            guard let code = dataRequest.response?.statusCode else {
+                throw NetworkError.underlying(NSError(
+                    domain: "NetworkClient",
+                    code: -1,
+                    userInfo: [NSLocalizedDescriptionKey: "No HTTPURLResponse"]
+                ))
+            }
+            return code
+            
+        } catch let afError as AFError {
+            if case let .responseValidationFailed(reason) = afError,
+               case let .unacceptableStatusCode(statusCode) = reason {
+                throw NetworkError.serverError(statusCode: statusCode,
+                                               data: afError.underlyingData)
+            }
+            throw NetworkError.underlying(afError)
         }
     }
 
@@ -122,7 +219,7 @@ final class NetworkClient {
 
     private func makeHeaders() throws -> HTTPHeaders {
         let bearer = try bearerToken()
-        var headers: HTTPHeaders = [
+        let headers: HTTPHeaders = [
             "Authorization": bearer,
             "Accept": "application/json"
         ]
