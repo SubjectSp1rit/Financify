@@ -68,4 +68,10 @@ final class AnalysisPresenter: AnalysisPresentationLogic {
             view?.applyTransactions(vms)
         }
     }
+    
+    func presentLoading(isLoading: Bool) async {
+        DispatchQueue.main.async { [weak self] in
+            self?.view?.displayLoading(isLoading: isLoading)
+        }
+    }
 }

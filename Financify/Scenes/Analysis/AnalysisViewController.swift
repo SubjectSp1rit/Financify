@@ -10,6 +10,7 @@ final class AnalysisViewController: UIViewController {
     private var cellViewModels: [CategoryCellViewModel] = []
     private var transactionViewModels: [TransactionCellViewModel] = []
     private var showAllCategories = false
+    private var loadingController: UIHostingController<LoadingAnimation>?
     
     // MARK: - UI Components
     private lazy var table: UITableView = {
@@ -80,6 +81,26 @@ final class AnalysisViewController: UIViewController {
     }
     
     // MARK: - Methods
+    func displayLoading(isLoading: Bool) {
+        if isLoading {
+            let host = UIHostingController(rootView: LoadingAnimation())
+            host.view.backgroundColor = .systemGroupedBackground
+            
+            addChild(host)
+            view.addSubview(host.view)
+            
+            host.view.pin(to: view)
+            
+            host.didMove(toParent: self)
+            loadingController = host
+        } else if let host = loadingController {
+            host.willMove(toParent: nil)
+            host.view.removeFromSuperview()
+            host.removeFromParent()
+            loadingController = nil
+        }
+    }
+    
     func applyCategories(viewModels: [CategoryCellViewModel]) {
         self.cellViewModels = viewModels
         table.reloadData()
@@ -279,7 +300,7 @@ extension AnalysisViewController: UITableViewDataSource {
             withIdentifier: ReuseID.datePicker,
             for: indexPath
         )
-        cell.contentConfiguration = DatePickerCellConfiguration(
+        let config = DatePickerCellConfiguration(
             kind: kind,
             onDateChanged: { [weak self] date in
                 Task {
@@ -292,6 +313,7 @@ extension AnalysisViewController: UITableViewDataSource {
                 }
             }
         )
+        cell.contentConfiguration = config
         cell.selectionStyle = .none
         return cell
     }
@@ -301,6 +323,9 @@ extension AnalysisViewController: UITableViewDataSource {
             withIdentifier: ReuseID.sort,
             for: indexPath
         )
+        cell.selectionStyle = .none
+        cell.contentView.subviews.forEach { $0.removeFromSuperview() }
+        
         cell.textLabel?.text = Constants.CellTitle.sort
         
         let actions = SortOption.allCases.map { option in
@@ -337,7 +362,6 @@ extension AnalysisViewController: UITableViewDataSource {
         button.sizeToFit()
         
         cell.accessoryView = button
-        cell.selectionStyle = .none
         return cell
     }
 
@@ -354,6 +378,7 @@ extension AnalysisViewController: UITableViewDataSource {
         label.sizeToFit()
         
         cell.accessoryView = label
+        
         cell.selectionStyle = .none
         return cell
     }

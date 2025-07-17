@@ -77,7 +77,7 @@ final class HistoryViewModel: ObservableObject {
     // MARK: - Methods
     func refresh() async {
         isLoading = true
-        //defer { isLoading = false }
+        defer { isLoading = false }
 
         do {
             let account = try await bankAccountService.primaryAccount()

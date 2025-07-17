@@ -48,7 +48,12 @@ struct HistoryView: View {
                     currency: viewModel.currency
                 )
             }
-            .redacted(reason: viewModel.isLoading ? .placeholder : [])
+            .if(viewModel.isLoading) { view in
+                view.redacted(reason: .placeholder)
+            }
+            .if(!viewModel.isLoading) { view in
+                view.unredacted()
+            }
             
             Section(header:
                         Text(verbatim: .sectionHeaderText)

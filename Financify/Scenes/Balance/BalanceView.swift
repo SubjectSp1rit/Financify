@@ -28,12 +28,21 @@ struct BalanceView: View {
         NavigationStack {
             List {
                 balanceSection
-                    .redacted(reason: viewModel.isLoading ? .placeholder : [])
+                    .if(viewModel.isLoading) { view in
+                        view.redacted(reason: .placeholder)
+                    }
+                    .if(!viewModel.isLoading) { view in
+                        view.unredacted()
+                    }
                 currencySection
-                    .redacted(reason: viewModel.isLoading ? .placeholder : [])
+                    .if(viewModel.isLoading) { view in
+                        view.redacted(reason: .placeholder)
+                    }
+                    .if(!viewModel.isLoading) { view in
+                        view.unredacted()
+                    }
             }
             .overlay(alignment: .center) {
-                // Пока данные грузятся - показываем анимацию загрузки по центру экрана
                 if viewModel.isLoading {
                     LoadingAnimation()
                 }

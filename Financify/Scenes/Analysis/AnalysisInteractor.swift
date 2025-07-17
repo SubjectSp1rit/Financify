@@ -100,8 +100,13 @@ final class AnalysisInteractor: AnalysisBusinessLogic, AnalysisBusinessStorage {
     
     func refresh() async {
         isLoading = true
-        defer { isLoading = false }
+        await presenter.presentLoading(isLoading: true)
 
+        defer {
+            isLoading = false
+            Task { await presenter.presentLoading(isLoading: false) }
+        }
+        
         do {
             async let accountTask = bankAccountService.primaryAccount()
             async let catsTask = categoriesService.getAllCategories()

@@ -29,13 +29,23 @@ struct TransactionsListView: View {
                     SortCell(
                         selectedOption: $viewModel.selectedSortOption
                     )
-                        .redacted(reason: viewModel.isLoading ? .placeholder : [])
+                        .if(viewModel.isLoading) { view in
+                            view.redacted(reason: .placeholder)
+                        }
+                        .if(!viewModel.isLoading) { view in
+                            view.unredacted()
+                        }
                     SummaryCell(
                         total: viewModel.total,
                         title: .summaryTitle,
                         currency: viewModel.currency
                     )
-                        .redacted(reason: viewModel.isLoading ? .placeholder : [])
+                        .if(viewModel.isLoading) { view in
+                            view.redacted(reason: .placeholder)
+                        }
+                        .if(!viewModel.isLoading) { view in
+                            view.unredacted()
+                        }
                 }
                 
                 Section(String.operationsHeader) {
