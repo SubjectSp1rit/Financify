@@ -53,6 +53,18 @@ struct BalanceView: View {
             }
             .navigationTitle(Constants.Text.navigationTitle)
             .toolbar {
+                if viewModel.isSyncing {
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        HStack(spacing: 8) {
+                            ProgressView()
+                                .progressViewStyle(.circular)
+                            Text("Синхронизация...")
+                                .font(.caption)
+                                .foregroundColor(.secondAccent)
+                        }
+                    }
+                }
+                
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: toggleEditMode) {
                         Image(systemName: isEditing ? Constants.SFSymbols.checkmark : Constants.SFSymbols.pencil)
@@ -65,12 +77,13 @@ struct BalanceView: View {
                     }
                 }
             }
-            .task { await viewModel.refreshBalance() }
-            .alert("Оффлайн-режим", isPresented: $viewModel.shouldShowOfflineAlert) {
-                Button("Ок", role: .cancel) { }
-            } message: {
-                Text("Вы не подключены к сети. Баланс может быть неактуален, а изменения будут сохранены локально и синхронизированы позже.")
+            .overlay(alignment: .bottom) {
+                if viewModel.isOffline {
+                    OfflineBannerView()
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
             }
+            .task { await viewModel.refreshBalance() }
         }
         .tint(.secondAccent)
     }

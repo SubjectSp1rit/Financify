@@ -110,11 +110,12 @@ final class AnalysisInteractor: AnalysisBusinessLogic, AnalysisBusinessStorage {
         do {
             async let accountTask = bankAccountService.primaryAccount()
             async let catsTask = categoriesService.getAllCategories()
-            async let txsTask = transactionsService.getAllTransactions {
+
+            let (account, cats) = try await (accountTask, catsTask)
+            
+            let txsRaw = try await transactionsService.getAllTransactions(by: account.id) {
                 (startOfDay...endOfDay).contains($0.transactionDate)
             }
-
-            let (account, cats, txsRaw) = try await (accountTask, catsTask, txsTask)
 
             currency   = Currency(jsonTitle: account.currency)
             categories = Dictionary(uniqueKeysWithValues: cats.map { ($0.id, $0) })

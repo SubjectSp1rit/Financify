@@ -5,9 +5,12 @@ struct CategoriesView: View {
     @StateObject private var viewModel: CategoriesViewModel
     
     // MARK: - Lifecycle
-    init(categoriesService: CategoriesServiceLogic) {
+    init(categoriesService: CategoriesServiceLogic,
+         reachability: NetworkReachabilityLogic
+    ) {
         let vm = CategoriesViewModel(
-            categoriesService: categoriesService
+            categoriesService: categoriesService,
+            reachability: reachability
         )
         _viewModel = StateObject(wrappedValue: vm)
     }
@@ -27,6 +30,12 @@ struct CategoriesView: View {
                 // Пока данные грузятся - показываем анимацию загрузки по центру экрана
                 if viewModel.isLoading && viewModel.categories.isEmpty {
                     LoadingAnimation()
+                }
+            }
+            .overlay(alignment: .bottom) {
+                if viewModel.isOffline {
+                    OfflineBannerView()
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
             .scrollDismissesKeyboard(.immediately)

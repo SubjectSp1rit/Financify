@@ -10,8 +10,8 @@ final class BalanceViewModel: ObservableObject {
     
     // MARK: - Published
     @Published var isLoading: Bool = false
+    @Published var isSyncing: Bool = false
     @Published var isOffline: Bool = false
-    @Published var shouldShowOfflineAlert: Bool = false
     
     @Published var selectedCurrency: Currency = .rub {
         didSet {
@@ -45,8 +45,16 @@ final class BalanceViewModel: ObservableObject {
     
     // MARK: - Methods
     func refreshBalance() async {
+        if reachability.currentStatus == .online {
+            isSyncing = true
+        }
+        
         isLoading = true
-        defer { isLoading = false }
+        
+        defer {
+            isLoading = false
+            isSyncing = false
+        }
 
         do {
             let account = try await bankAccountService.primaryAccount()
@@ -68,17 +76,16 @@ final class BalanceViewModel: ObservableObject {
     
     // MARK: - Private Methods
     private func listenForNetworkStatusChanges() {
-        networkStatusTask = Task {
+        networkStatusTask = Task(priority: .userInitiated) { @MainActor in
             for await status in reachability.statusStream {
                 let wasOffline = self.isOffline
                 self.isOffline = status == .offline
                 
-                if !wasOffline && self.isOffline {
-                    self.shouldShowOfflineAlert = true
-                }
-                
                 if wasOffline && !self.isOffline {
-                    await self.refreshBalance()
+                    Task { @MainActor [weak self] in
+                        guard let self else { return }
+                        await refreshBalance()
+                    }
                 }
             }
         }

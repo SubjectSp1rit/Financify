@@ -3,7 +3,7 @@ import Alamofire
 import SwiftData
 
 protocol TransactionsServiceLogic: Actor {
-    func getAllTransactions(_ filter: (Transaction) -> Bool) async throws -> [Transaction]
+    func getAllTransactions(by accountId: Int, with filter: (Transaction) -> Bool) async throws -> [Transaction]
     func addTransaction(_ transaction: TransactionRequest) async throws
     func updateTransaction(_ transaction: TransactionRequest, with id: Int) async throws
     func deleteTransaction(byId id: Int) async throws
@@ -23,29 +23,22 @@ final actor TransactionsService: TransactionsServiceLogic {
         synchronizationService: SynchronizationServiceLogic,
         backupService: BackupServiceLogic,
         reachability: NetworkReachabilityLogic,
-        modelContext: ModelContext
+        modelContainer: ModelContainer
     ) {
         self.client = client
         self.synchronizationService = synchronizationService
         self.backupService = backupService
         self.reachability = reachability
-        self.modelContext = modelContext
+        self.modelContext = ModelContext(modelContainer)
     }
     
     // MARK: - Methods
-    func getAllTransactions(_ filter: (Transaction) -> Bool) async throws -> [Transaction] {
+    func getAllTransactions(by accountId: Int, with filter: (Transaction) -> Bool) async throws -> [Transaction] {
         await synchronizationService.synchronize()
 
         do {
-            let bankAccount = try await BankAccountService(
-                synchronizationService: synchronizationService,
-                backupService: backupService,
-                reachability: reachability,
-                modelContext: modelContext
-            ).primaryAccount()
-
             let transactionResponse: [TransactionResponse] = try await client.request(
-                .transactionsAccountGETby(accountId: bankAccount.id),
+                .transactionsAccountGETby(accountId: accountId),
                 method: .get
             )
             let transactions: [Transaction] = transactionResponse.map { $0.convertToTransaction() }

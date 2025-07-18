@@ -23,13 +23,13 @@ final actor BankAccountService: BankAccountServiceLogic {
         synchronizationService: SynchronizationServiceLogic,
         backupService: BackupServiceLogic,
         reachability: NetworkReachabilityLogic,
-        modelContext: ModelContext
+        modelContainer: ModelContainer
     ) {
         self.client = client
         self.synchronizationService = synchronizationService
         self.backupService = backupService
         self.reachability = reachability
-        self.modelContext = modelContext
+        self.modelContext = ModelContext(modelContainer)
     }
     
     // MARK: - Public Methods

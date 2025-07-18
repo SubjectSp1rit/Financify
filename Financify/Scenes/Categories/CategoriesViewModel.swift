@@ -4,6 +4,7 @@ import Foundation
 final class CategoriesViewModel: ObservableObject {
     // MARK: - Properties
     private let categoriesService: CategoriesServiceLogic
+    private let reachability: NetworkReachabilityLogic
     
     var filteredCategories: [Category] {
         guard !searchText.isEmpty else { return categories }
@@ -21,11 +22,26 @@ final class CategoriesViewModel: ObservableObject {
     // MARK: - Published
     @Published var isLoading: Bool = false
     @Published var searchText: String = ""
+    @Published var isOffline: Bool = false
     @Published private(set) var categories: [Category] = []
     
+    // MARK: - Properties
+    private var networkStatusTask: Task<Void, Never>? = nil
+    
     // MARK: - Lifecycle
-    init(categoriesService: CategoriesServiceLogic) {
+    init(categoriesService: CategoriesServiceLogic,
+         reachability: NetworkReachabilityLogic
+    ) {
         self.categoriesService = categoriesService
+        self.reachability = reachability
+        
+        self.isOffline = reachability.currentStatus == .offline
+        
+        listenForNetworkStatusChanges()
+    }
+    
+    deinit {
+        networkStatusTask?.cancel()
     }
     
     // MARK: - Methods
@@ -51,6 +67,23 @@ final class CategoriesViewModel: ObservableObject {
             print("Сетевая ошибка или другое исключение:", error.localizedDescription)
         } catch {
             print("Непредвиденная ошибка: \(error.localizedDescription)")
+        }
+    }
+    
+    // MARK: - Private Methods
+    private func listenForNetworkStatusChanges() {
+        networkStatusTask = Task(priority: .userInitiated) { @MainActor in
+            for await status in reachability.statusStream {
+                let wasOffline = self.isOffline
+                self.isOffline = status == .offline
+                
+                if wasOffline && !self.isOffline {
+                    Task { @MainActor [weak self] in
+                        guard let self else { return }
+                        await fetchCategories()
+                    }
+                }
+            }
         }
     }
 }

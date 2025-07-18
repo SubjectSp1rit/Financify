@@ -21,8 +21,8 @@ protocol BackupServiceLogic {
 final class BackupService: BackupServiceLogic {
     private let modelContext: ModelContext
 
-    init(modelContext: ModelContext) {
-        self.modelContext = modelContext
+    init(modelContainer: ModelContainer) {
+        self.modelContext = ModelContext(modelContainer)
     }
 
     func add(httpMethod: String, endpointPath: String, payload: Data?) async throws {

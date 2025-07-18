@@ -14,8 +14,9 @@ final class AppDependencies: ObservableObject {
     
     init() {
         self.modelContainer = AppModelContainer.shared
+        
         self.networkReachabilityService = NetworkReachabilityService()
-        self.backupService = BackupService(modelContext: modelContainer.mainContext)
+        self.backupService = BackupService(modelContainer: self.modelContainer)
         self.synchronizationService = SynchronizationService(
             backupService: self.backupService,
             reachability: self.networkReachabilityService
@@ -24,17 +25,17 @@ final class AppDependencies: ObservableObject {
             synchronizationService: self.synchronizationService,
             backupService: self.backupService,
             reachability: self.networkReachabilityService,
-            modelContext: modelContainer.mainContext
+            modelContainer: self.modelContainer
         )
         self.categoryService = CategoriesService(
             reachability: self.networkReachabilityService,
-            modelContext: modelContainer.mainContext
+            modelContainer: self.modelContainer
         )
         self.bankAccountService = BankAccountService(
             synchronizationService: self.synchronizationService,
             backupService: self.backupService,
             reachability: self.networkReachabilityService,
-            modelContext: modelContainer.mainContext
+            modelContainer: self.modelContainer
         )
     }
 }

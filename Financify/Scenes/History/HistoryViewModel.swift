@@ -86,7 +86,7 @@ final class HistoryViewModel: ObservableObject {
             let cats = try await categoriesService.getCategories(by: direction)
             categories = Dictionary(uniqueKeysWithValues: cats.map { ($0.id, $0) })
 
-            let transactionByPeriod = try await transactionsService.getAllTransactions {
+            let transactionByPeriod = try await transactionsService.getAllTransactions(by: account.id) {
                 (startOfDay...endOfDay).contains($0.transactionDate)
             }
             

@@ -17,7 +17,6 @@ final class TransactionsListViewModel: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var isSyncing: Bool = false
     @Published var isOffline: Bool = false
-    @Published var shouldShowOfflineAlert: Bool = false
     
     @Published var selectedSortOption: SortOption = .newestFirst {
         didSet {
@@ -59,6 +58,8 @@ final class TransactionsListViewModel: ObservableObject {
     
     // MARK: - Methods
     func refresh() async {
+        self.transactions = []
+        
         if reachability.currentStatus == .online {
             isSyncing = true
         }
@@ -82,7 +83,7 @@ final class TransactionsListViewModel: ObservableObject {
             let startOfDay = calendar.startOfDay(for: Date())
             let endOfDay   = calendar.date(byAdding: .day, value: 1, to: startOfDay)!.addingTimeInterval(-1)
                 
-            let allToday = try await transactionsService.getAllTransactions {
+            let allToday = try await transactionsService.getAllTransactions(by: account.id) {
                 (startOfDay...endOfDay).contains($0.transactionDate)
             }
             
@@ -108,19 +109,16 @@ final class TransactionsListViewModel: ObservableObject {
     
     // MARK: - Private Methods
     private func listenForNetworkStatusChanges() {
-        networkStatusTask = Task {
+        networkStatusTask = Task(priority: .userInitiated) { @MainActor in
             for await status in reachability.statusStream {
                 let wasOffline = self.isOffline
                 self.isOffline = status == .offline
                 
-                // Показываем алерт только при переходе из онлайна в оффлайн
-                if !wasOffline && self.isOffline {
-                    self.shouldShowOfflineAlert = true
-                }
-                
-                // Если мы вернулись в онлайн, запускаем обновление для синхронизации
                 if wasOffline && !self.isOffline {
-                    await self.refresh()
+                    Task { @MainActor [weak self] in
+                        guard let self else { return }
+                        await refresh()
+                    }
                 }
             }
         }

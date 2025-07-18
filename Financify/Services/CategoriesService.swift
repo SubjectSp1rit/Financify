@@ -16,11 +16,11 @@ final actor CategoriesService: CategoriesServiceLogic {
     init(
         client: NetworkClient = NetworkClient(),
         reachability: NetworkReachabilityLogic,
-        modelContext: ModelContext
+        modelContainer: ModelContainer
     ) {
         self.client = client
         self.reachability = reachability
-        self.modelContext = modelContext
+        self.modelContext = ModelContext(modelContainer)
     }
     
     // MARK: - Methods

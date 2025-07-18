@@ -59,7 +59,8 @@ struct MainTabView: View {
             
             // Статьи
             CategoriesView(
-                categoriesService: dependencies.categoryService
+                categoriesService: dependencies.categoryService,
+                reachability: dependencies.networkReachabilityService
             )
                 .tabItem {
                     Image(.categories)

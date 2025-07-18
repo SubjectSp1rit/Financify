@@ -31,23 +31,23 @@ struct TransactionsListView: View {
                     SortCell(
                         selectedOption: $viewModel.selectedSortOption
                     )
-                        .if(viewModel.isLoading) { view in
-                            view.redacted(reason: .placeholder)
-                        }
-                        .if(!viewModel.isLoading) { view in
-                            view.unredacted()
-                        }
+                    .if(viewModel.isLoading) { view in
+                        view.redacted(reason: .placeholder)
+                    }
+                    .if(!viewModel.isLoading) { view in
+                        view.unredacted()
+                    }
                     SummaryCell(
                         total: viewModel.total,
                         title: .summaryTitle,
                         currency: viewModel.currency
                     )
-                        .if(viewModel.isLoading) { view in
-                            view.redacted(reason: .placeholder)
-                        }
-                        .if(!viewModel.isLoading) { view in
-                            view.unredacted()
-                        }
+                    .if(viewModel.isLoading) { view in
+                        view.redacted(reason: .placeholder)
+                    }
+                    .if(!viewModel.isLoading) { view in
+                        view.unredacted()
+                    }
                 }
                 
                 Section(String.operationsHeader) {
@@ -75,6 +75,13 @@ struct TransactionsListView: View {
                     LoadingAnimation()
                 }
             }
+            .overlay(alignment: .bottom) {
+                if viewModel.isOffline {
+                    OfflineBannerView()
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+            }
+            .animation(.easeInOut, value: viewModel.isOffline)
             .overlay(alignment: .bottomTrailing) {
                 Button(action: {
                     isPresentingNew = true
@@ -91,11 +98,15 @@ struct TransactionsListView: View {
             }
             .navigationTitle(viewModel.direction.title)
             .toolbar {
-                // Показываем ProgressView во время синхронизации
                 if viewModel.isSyncing {
                     ToolbarItem(placement: .navigationBarLeading) {
-                        ProgressView()
-                            .progressViewStyle(.circular)
+                        HStack(spacing: 8) {
+                            ProgressView()
+                                .progressViewStyle(.circular)
+                            Text("Синхронизация...")
+                                .font(.caption)
+                                .foregroundColor(.secondAccent)
+                        }
                     }
                 }
                 
@@ -112,10 +123,8 @@ struct TransactionsListView: View {
                     }
                 }
             }
-            .alert("Оффлайн-режим", isPresented: $viewModel.shouldShowOfflineAlert) {
-                Button("Ок", role: .cancel) { }
-            } message: {
-                Text("Вы не подключены к сети. Данные могут быть неактуальны, а изменения будут сохранены локально и синхронизированы позже.")
+            .task {
+                await viewModel.refresh()
             }
             .task {
                 await viewModel.refresh() }

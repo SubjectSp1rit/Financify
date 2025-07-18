@@ -30,6 +30,7 @@ final actor SynchronizationService: SynchronizationServiceLogic {
             print("SynchronizationService: Starting synchronization of \(pending.count) pending operations.")
 
             var successfulOps: [PendingOperation] = []
+            var fatalOps: [PendingOperation] = [] // Список для невыполнимых операций
 
             for operation in pending {
                 do {
@@ -47,15 +48,27 @@ final actor SynchronizationService: SynchronizationServiceLogic {
                     // Если запрос прошел без ошибок, добавляем операцию в список на удаление
                     successfulOps.append(operation)
                     print("SynchronizationService: Successfully synced operation for path \(operation.endpointPath).")
+                } catch let error as NetworkError {
+                    // Анализируем тип ошибки
+                    if case .serverError(let statusCode, _) = error, (400...499).contains(statusCode) {
+                        // Это фатальная ошибка клиента (400, 404)
+                        print("SynchronizationService: Encountered fatal error (status \(statusCode)) for operation on path \(operation.endpointPath). Discarding operation.")
+                        fatalOps.append(operation)
+                    } else {
+                        // Это временная ошибка (5xx) - ничего не делаем, попробуем позже
+                        print("SynchronizationService: Encountered temporary error for operation on path \(operation.endpointPath). Will retry later. Error: \(error.localizedDescription)")
+                    }
                 } catch {
-                    // Если одна операция не удалась, логируем ошибку и продолжаем с остальными
-                    print("SynchronizationService: Failed to sync operation for path \(operation.endpointPath). Error: \(error.localizedDescription)")
+                    // Любая другая временная ошибка
+                    print("SynchronizationService: Encountered temporary error for operation on path \(operation.endpointPath). Will retry later. Error: \(error.localizedDescription)")
                 }
             }
 
-            if !successfulOps.isEmpty {
-                try await backupService.delete(successfulOps)
-                print("SynchronizationService: Deleted \(successfulOps.count) successfully synchronized operations.")
+            // Удаляем и успешные, и фатальные операции
+            let opsToDelete = successfulOps + fatalOps
+            if !opsToDelete.isEmpty {
+                try await backupService.delete(opsToDelete)
+                print("SynchronizationService: Deleted \(opsToDelete.count) processed operations (\(successfulOps.count) successful, \(fatalOps.count) fatal).")
             }
 
         } catch {

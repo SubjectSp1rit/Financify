@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		AE300B4A2E2AE30300D69865 /* AlamofireDynamic in Embed Frameworks */ = {isa = PBXBuildFile; productRef = AE3DEA052E25BB9A00DE5079 /* AlamofireDynamic */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		AE3DEA062E25BB9A00DE5079 /* AlamofireDynamic in Frameworks */ = {isa = PBXBuildFile; productRef = AE3DEA052E25BB9A00DE5079 /* AlamofireDynamic */; };
 		AEBDFB712E29401D005F02C1 /* SkeletonView in Frameworks */ = {isa = PBXBuildFile; productRef = AEBDFB702E29401D005F02C1 /* SkeletonView */; };
 /* End PBXBuildFile section */
@@ -28,6 +29,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				AE300B4A2E2AE30300D69865 /* AlamofireDynamic in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
