@@ -13,6 +13,8 @@ final class PersistentTransaction {
     var createdAt: Date
     var updatedAt: Date
     
+    var isPendingDeletion: Bool = false
+    
     init(id: Int, accountId: Int, categoryId: Int, amount: Decimal, transactionDate: Date, comment: String?, createdAt: Date, updatedAt: Date) {
         self.id = id
         self.accountId = accountId
@@ -22,6 +24,7 @@ final class PersistentTransaction {
         self.comment = comment
         self.createdAt = createdAt
         self.updatedAt = updatedAt
+        self.isPendingDeletion = false
     }
     
     convenience init(from domain: Transaction) {

@@ -25,16 +25,12 @@ final actor CategoriesService: CategoriesServiceLogic {
     
     // MARK: - Methods
     func getAllCategories() async throws -> [Category] {
-        if reachability.currentStatus == .online {
-            do {
-                let categories: [Category] = try await client.request(.categoriesGET, method: .get)
-                try await updateLocalStore(with: categories)
-                return categories
-            } catch {
-                print("Categories fetch failed while online. Falling back to local data. Error: \(error)")
-                return try await fetchLocalCategories()
-            }
-        } else {
+        do {
+            let categories: [Category] = try await client.request(.categoriesGET, method: .get)
+            try await updateLocalStore(with: categories)
+            return categories
+        } catch {
+            print("Categories fetch failed. Falling back to local data. Error: \(error.localizedDescription)")
             return try await fetchLocalCategories()
         }
     }
