@@ -13,7 +13,8 @@ struct TransactionEditorView: View {
         transaction: Transaction? = nil,
         categoriesService: CategoriesServiceLogic,
         transactionsService: TransactionsServiceLogic,
-        bankAccountService: BankAccountServiceLogic
+        bankAccountService: BankAccountServiceLogic,
+        reachability: NetworkReachabilityLogic
     ) {
         let vm = TransactionEditorViewModel(
             isNew: isNew,
@@ -21,7 +22,8 @@ struct TransactionEditorView: View {
             transaction: transaction,
             categoriesService: categoriesService,
             transactionsService: transactionsService,
-            bankAccountService: bankAccountService
+            bankAccountService: bankAccountService,
+            reachability: reachability
         )
         _viewModel = StateObject(wrappedValue: vm)
     }
@@ -50,6 +52,12 @@ struct TransactionEditorView: View {
                                 .foregroundStyle(.red)
                         }
                     }
+                }
+            }
+            .overlay(alignment: .bottom) {
+                if viewModel.isOffline {
+                    OfflineBannerView()
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
             .alert(viewModel.alertMessage, isPresented: $viewModel.showAlert) {

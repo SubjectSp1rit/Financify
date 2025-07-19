@@ -6,6 +6,7 @@ final class AnalysisInteractor: AnalysisBusinessLogic, AnalysisBusinessStorage {
     private let categoriesService: CategoriesServiceLogic
     private let transactionsService: TransactionsServiceLogic
     private let bankAccountService: BankAccountServiceLogic
+    private let reachability: NetworkReachabilityLogic
     
     // MARK: - Properties
     let direction: Direction
@@ -15,6 +16,8 @@ final class AnalysisInteractor: AnalysisBusinessLogic, AnalysisBusinessStorage {
     private(set) var summaries: [CategorySummary] = []
     private(set) var isLoading: Bool = false
     private(set) var currency: Currency = .rub
+    private(set) var isOffline: Bool = false
+    private var networkStatusTask: Task<Void, Never>? = nil
     
     private(set) var fromDate: Date {
         willSet {
@@ -69,16 +72,25 @@ final class AnalysisInteractor: AnalysisBusinessLogic, AnalysisBusinessStorage {
         direction: Direction,
         categoriesService: CategoriesServiceLogic,
         transactionsService: TransactionsServiceLogic,
-        bankAccountService: BankAccountServiceLogic
+        bankAccountService: BankAccountServiceLogic,
+        reachability: NetworkReachabilityLogic
     ) {
         self.presenter = presenter
         self.direction = direction
         self.categoriesService   = categoriesService
         self.transactionsService = transactionsService
         self.bankAccountService = bankAccountService
+        self.reachability = reachability
         
         self.toDate = Date()
         self.fromDate =  calendar.date(byAdding: .month, value: -1, to: Date())!
+        
+        self.isOffline = reachability.currentStatus == .offline
+        listenForNetworkStatusChanges()
+    }
+    
+    deinit {
+        networkStatusTask?.cancel()
     }
     
     // MARK: - Methods
@@ -99,6 +111,7 @@ final class AnalysisInteractor: AnalysisBusinessLogic, AnalysisBusinessStorage {
     }
     
     func refresh() async {
+        await presenter.presentOfflineStatus(isOffline: self.isOffline)
         isLoading = true
         await presenter.presentLoading(isLoading: true)
 
@@ -188,6 +201,25 @@ final class AnalysisInteractor: AnalysisBusinessLogic, AnalysisBusinessStorage {
             print("Непредвиденная ошибка: \(error.localizedDescription)")
         }
     }
+    
+    // MARK: - Private Methods
+    private func listenForNetworkStatusChanges() {
+        networkStatusTask = Task(priority: .userInitiated) {
+            for await status in reachability.statusStream {
+                let wasOffline = self.isOffline
+                
+                await MainActor.run {
+                    self.isOffline = status == .offline
+                }
+                
+                await presenter.presentOfflineStatus(isOffline: self.isOffline)
+                
+                if wasOffline && !self.isOffline {
+                    await self.refresh()
+                }
+            }
+        }
+    }
 }
 
 extension AnalysisInteractor {
@@ -198,7 +230,8 @@ extension AnalysisInteractor {
             transaction: transaction,
             categoriesService: categoriesService,
             transactionsService: transactionsService,
-            bankAccountService: bankAccountService
+            bankAccountService: bankAccountService,
+            reachability: reachability
         )
     }
 }

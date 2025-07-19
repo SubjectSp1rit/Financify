@@ -5,6 +5,12 @@ final class AnalysisPresenter: AnalysisPresentationLogic {
     weak var view: AnalysisViewController?
     
     // MARK: - Methods
+    func presentOfflineStatus(isOffline: Bool) async {
+        DispatchQueue.main.async { [weak view] in
+            view?.displayOfflineStatus(isOffline: isOffline)
+        }
+    }
+    
     func presentCategories(
         summaries: [CategorySummary],
         total: Decimal,

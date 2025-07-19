@@ -69,8 +69,6 @@ struct TransactionsListView: View {
             }
             .animation(.easeInOut(duration: 0.3), value: viewModel.transactions)
             .overlay(alignment: .center) {
-                // Показываем LoadingAnimation только если мы онлайн и грузим данные,
-                // но еще не получили их. В оффлайне данные должны появиться мгновенно из базы
                 if viewModel.isLoading && !viewModel.isOffline && viewModel.transactions.isEmpty {
                     LoadingAnimation()
                 }
@@ -116,7 +114,8 @@ struct TransactionsListView: View {
                             direction: viewModel.direction,
                             categoriesService: viewModel.categoriesService,
                             transactionsService: viewModel.transactionsService,
-                            bankAccountService: viewModel.bankAccountService
+                            bankAccountService: viewModel.bankAccountService,
+                            reachability: viewModel.reachability
                         )
                     ) {
                         Image(systemName: .clockIconName)
@@ -126,8 +125,6 @@ struct TransactionsListView: View {
             .task {
                 await viewModel.refresh()
             }
-            .task {
-                await viewModel.refresh() }
             // Создание операции
             .fullScreenCover(isPresented: $isPresentingNew, onDismiss: {
                 Task { await viewModel.refresh() }
@@ -138,7 +135,8 @@ struct TransactionsListView: View {
                     transaction: nil,
                     categoriesService: viewModel.categoriesService,
                     transactionsService: viewModel.transactionsService,
-                    bankAccountService: viewModel.bankAccountService
+                    bankAccountService: viewModel.bankAccountService,
+                    reachability: viewModel.reachability
                 )
             }
             
@@ -152,7 +150,8 @@ struct TransactionsListView: View {
                     transaction: tx,
                     categoriesService: viewModel.categoriesService,
                     transactionsService: viewModel.transactionsService,
-                    bankAccountService: viewModel.bankAccountService
+                    bankAccountService: viewModel.bankAccountService,
+                    reachability: viewModel.reachability
                 )
             }
         }

@@ -11,13 +11,15 @@ struct HistoryView: View {
         direction: Direction,
         categoriesService: CategoriesServiceLogic,
         transactionsService: TransactionsServiceLogic,
-        bankAccountService: BankAccountServiceLogic
+        bankAccountService: BankAccountServiceLogic,
+        reachability: NetworkReachabilityLogic
     ) {
         let vm = HistoryViewModel(
             direction: direction,
             categoriesService: categoriesService,
             transactionsService: transactionsService,
-            bankAccountService: bankAccountService
+            bankAccountService: bankAccountService,
+            reachability: reachability
         )
         _viewModel = StateObject(wrappedValue: vm)
     }
@@ -83,16 +85,35 @@ struct HistoryView: View {
                 LoadingAnimation()
             }
         }
+        .overlay(alignment: .bottom) {
+            if viewModel.isOffline {
+                OfflineBannerView()
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+        }
         .navigationTitle(
             viewModel.direction == .income ? String.historyIncomeNavigationTitle : String.historyExpensesNavigationTitle)
         .toolbar {
+            if viewModel.isSyncing {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    HStack(spacing: 8) {
+                        ProgressView()
+                            .progressViewStyle(.circular)
+                        Text("Синхронизация...")
+                            .font(.caption)
+                            .foregroundColor(.secondAccent)
+                    }
+                }
+            }
+            
             ToolbarItem(placement: .navigationBarTrailing) {
                 NavigationLink(
                     destination: AnalysisViewControllerWrapper(
                         direction: viewModel.direction,
                         categoriesService: viewModel.categoriesService,
                         transactionsService: viewModel.transactionsService,
-                        bankAccountService: viewModel.bankAccountService
+                        bankAccountService: viewModel.bankAccountService,
+                        reachability: viewModel.reachability
                     )
                     .navigationBarHidden(true).ignoresSafeArea(edges: .top)
                 ) {
@@ -110,7 +131,8 @@ struct HistoryView: View {
                 transaction: tx,
                 categoriesService: viewModel.categoriesService,
                 transactionsService: viewModel.transactionsService,
-                bankAccountService: viewModel.bankAccountService
+                bankAccountService: viewModel.bankAccountService,
+                reachability: viewModel.reachability
             )
         }
         .task {
@@ -141,6 +163,7 @@ struct AnalysisViewControllerWrapper: UIViewControllerRepresentable {
     let categoriesService: CategoriesServiceLogic
     let transactionsService: TransactionsServiceLogic
     let bankAccountService: BankAccountServiceLogic
+    let reachability: NetworkReachabilityLogic
     
     func makeUIViewController(
         context: UIViewControllerRepresentableContext<AnalysisViewControllerWrapper>
@@ -150,6 +173,7 @@ struct AnalysisViewControllerWrapper: UIViewControllerRepresentable {
             categoriesService: categoriesService,
             transactionsService: transactionsService,
             bankAccountService: bankAccountService,
+            reachability: reachability,
             onClose: {
                 dismiss()
             }

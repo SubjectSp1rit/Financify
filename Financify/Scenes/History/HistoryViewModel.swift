@@ -6,11 +6,14 @@ final class HistoryViewModel: ObservableObject {
     let categoriesService: CategoriesServiceLogic
     let transactionsService: TransactionsServiceLogic
     let bankAccountService: BankAccountServiceLogic
+    let reachability: NetworkReachabilityLogic
     
     // MARK: - Published
     @Published private(set) var categories: [Int:Category] = [:]
     @Published private(set) var transactions: [Transaction] = []
     @Published var isLoading: Bool = false
+    @Published var isSyncing: Bool = false
+    @Published var isOffline: Bool = false
     
     @Published var fromDate: Date {
         willSet {
@@ -58,13 +61,15 @@ final class HistoryViewModel: ObservableObject {
     
     let direction: Direction
     let calendar: Calendar = Calendar.current
+    private var networkStatusTask: Task<Void, Never>? = nil
     
     // MARK: - Lifecycle
     init(
         direction: Direction,
         categoriesService: CategoriesServiceLogic,
         transactionsService: TransactionsServiceLogic,
-        bankAccountService: BankAccountServiceLogic
+        bankAccountService: BankAccountServiceLogic,
+        reachability: NetworkReachabilityLogic
     ) {
         self.direction = direction
         self.toDate = Date()
@@ -72,12 +77,31 @@ final class HistoryViewModel: ObservableObject {
         self.categoriesService   = categoriesService
         self.transactionsService = transactionsService
         self.bankAccountService = bankAccountService
+        self.reachability = reachability
+        
+        self.isOffline = reachability.currentStatus == .offline
+        
+        listenForNetworkStatusChanges()
+    }
+    
+    deinit {
+        networkStatusTask?.cancel()
     }
     
     // MARK: - Methods
     func refresh() async {
+        self.transactions = []
+        
+        if reachability.currentStatus == .online {
+            isSyncing = true
+        }
+        
         isLoading = true
-        defer { isLoading = false }
+        
+        defer {
+            isLoading = false
+            isSyncing = false
+        }
 
         do {
             let account = try await bankAccountService.primaryAccount()
@@ -122,5 +146,22 @@ final class HistoryViewModel: ObservableObject {
     
     func category(for transaction: Transaction) -> Category? {
         categories[transaction.categoryId]
+    }
+    
+    // MARK: - Private Methods
+    private func listenForNetworkStatusChanges() {
+        networkStatusTask = Task(priority: .userInitiated) { @MainActor in
+            for await status in reachability.statusStream {
+                let wasOffline = self.isOffline
+                self.isOffline = status == .offline
+                
+                if wasOffline && !self.isOffline {
+                    Task { @MainActor [weak self] in
+                        guard let self else { return }
+                        await refresh()
+                    }
+                }
+            }
+        }
     }
 }

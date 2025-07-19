@@ -38,4 +38,9 @@ protocol AnalysisPresentationLogic {
     func presentLoading(
         isLoading: Bool
     ) async
+    
+    
+    func presentOfflineStatus(
+        isOffline: Bool
+    ) async
 }

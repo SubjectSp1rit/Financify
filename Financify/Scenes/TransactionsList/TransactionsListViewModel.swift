@@ -1,5 +1,3 @@
-// Financify/Financify/Scenes/TransactionsList/TransactionsListViewModel.swift
-
 import SwiftUI
 
 @MainActor
@@ -8,7 +6,7 @@ final class TransactionsListViewModel: ObservableObject {
     let categoriesService: CategoriesServiceLogic
     let transactionsService: TransactionsServiceLogic
     let bankAccountService: BankAccountServiceLogic
-    private let reachability: NetworkReachabilityLogic
+    let reachability: NetworkReachabilityLogic
     
     // MARK: - Published
     @Published private(set) var categories: [Int:Category] = [:]

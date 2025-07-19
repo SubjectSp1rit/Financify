@@ -10,6 +10,8 @@ final class AnalysisViewController: UIViewController {
     private var cellViewModels: [CategoryCellViewModel] = []
     private var transactionViewModels: [TransactionCellViewModel] = []
     private var showAllCategories = false
+    private var offlineBannerVC: UIHostingController<OfflineBannerView>?
+    private var isOffline = false
     private var loadingController: UIHostingController<LoadingAnimation>?
     
     // MARK: - UI Components
@@ -83,14 +85,13 @@ final class AnalysisViewController: UIViewController {
     // MARK: - Methods
     func displayLoading(isLoading: Bool) {
         if isLoading {
+            updateOfflineBannerVisibility(isVisible: false, animated: false)
+            
             let host = UIHostingController(rootView: LoadingAnimation())
             host.view.backgroundColor = .systemGroupedBackground
-            
             addChild(host)
             view.addSubview(host.view)
-            
             host.view.pin(to: view)
-            
             host.didMove(toParent: self)
             loadingController = host
         } else if let host = loadingController {
@@ -98,6 +99,15 @@ final class AnalysisViewController: UIViewController {
             host.view.removeFromSuperview()
             host.removeFromParent()
             loadingController = nil
+            
+            updateOfflineBannerVisibility(isVisible: self.isOffline, animated: true)
+        }
+    }
+    
+    func displayOfflineStatus(isOffline: Bool) {
+        self.isOffline = isOffline
+        if loadingController == nil {
+            updateOfflineBannerVisibility(isVisible: isOffline, animated: true)
         }
     }
     
@@ -160,6 +170,51 @@ final class AnalysisViewController: UIViewController {
         host.presentationController?.delegate = self
 
         present(host, animated: true)
+    }
+    
+    private func updateOfflineBannerVisibility(isVisible: Bool, animated: Bool) {
+        if isVisible {
+            guard offlineBannerVC == nil else { return }
+            
+            let banner = UIHostingController(rootView: OfflineBannerView())
+            banner.view.backgroundColor = .clear
+            
+            addChild(banner)
+            view.addSubview(banner.view)
+            
+            banner.view.pinHorizontal(to: view)
+            let bottomConstraint = banner.view.pinBottom(to: view.bottomAnchor, -banner.view.intrinsicContentSize.height)
+            view.layoutIfNeeded()
+            
+            banner.didMove(toParent: self)
+            self.offlineBannerVC = banner
+
+            bottomConstraint.constant = 0
+            if animated {
+                UIView.animate(withDuration: 0.6) {
+                    self.view.layoutIfNeeded()
+                }
+            }
+            
+        } else {
+            guard let banner = offlineBannerVC else { return }
+            
+            let animationBlock = {
+                banner.view.transform = CGAffineTransform(translationX: 0, y: banner.view.bounds.height)
+            }
+            let completionBlock: (Bool) -> Void = { _ in
+                banner.willMove(toParent: nil)
+                banner.view.removeFromSuperview()
+                banner.removeFromParent()
+                self.offlineBannerVC = nil
+            }
+            
+            if animated {
+                UIView.animate(withDuration: 0.6, animations: animationBlock, completion: completionBlock)
+            } else {
+                completionBlock(true)
+            }
+        }
     }
     
     // MARK: - Actions

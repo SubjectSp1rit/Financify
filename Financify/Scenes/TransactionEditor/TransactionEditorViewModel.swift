@@ -6,12 +6,15 @@ final class TransactionEditorViewModel: ObservableObject {
     let categoriesService: CategoriesServiceLogic
     let transactionsService: TransactionsServiceLogic
     let bankAccountService: BankAccountServiceLogic
+    private let reachability: NetworkReachabilityLogic
 
     // MARK: - Properties
     var isLoading: Bool = false
     let isNew: Bool
     let direction: Direction
     private var editingTransaction: Transaction?
+    private var networkStatusTask: Task<Void, Never>? = nil
+    
 
     private var decimalSeparator: String {
         Locale.current.decimalSeparator
@@ -32,6 +35,7 @@ final class TransactionEditorViewModel: ObservableObject {
     @Published var currency: Currency = .rub
     @Published var showAlert = false
     @Published var alertMessage: String = ""
+    @Published var isOffline: Bool = false
 
     // MARK: - Lifecycle
     init(
@@ -40,7 +44,8 @@ final class TransactionEditorViewModel: ObservableObject {
         transaction: Transaction? = nil,
         categoriesService: CategoriesServiceLogic,
         transactionsService: TransactionsServiceLogic,
-        bankAccountService: BankAccountServiceLogic
+        bankAccountService: BankAccountServiceLogic,
+        reachability: NetworkReachabilityLogic
     ) {
         self.isNew = isNew
         self.direction = direction
@@ -48,6 +53,15 @@ final class TransactionEditorViewModel: ObservableObject {
         self.categoriesService = categoriesService
         self.transactionsService = transactionsService
         self.bankAccountService = bankAccountService
+        self.reachability = reachability
+        
+        self.isOffline = reachability.currentStatus == .offline
+        
+        listenForNetworkStatusChanges()
+    }
+    
+    deinit {
+        networkStatusTask?.cancel()
     }
 
     // MARK: - Methods
@@ -206,6 +220,14 @@ final class TransactionEditorViewModel: ObservableObject {
         let formatter = NumberFormatter()
         formatter.decimalSeparator = decimalSeparator
         return formatter.number(from: amountText)?.decimalValue ?? .zero
+    }
+    
+    private func listenForNetworkStatusChanges() {
+        networkStatusTask = Task(priority: .userInitiated) { @MainActor in
+            for await status in reachability.statusStream {
+                self.isOffline = status == .offline
+            }
+        }
     }
 }
 

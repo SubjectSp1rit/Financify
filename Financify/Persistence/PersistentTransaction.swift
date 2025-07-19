@@ -15,7 +15,16 @@ final class PersistentTransaction {
     
     var isPendingDeletion: Bool = false
     
-    init(id: Int, accountId: Int, categoryId: Int, amount: Decimal, transactionDate: Date, comment: String?, createdAt: Date, updatedAt: Date) {
+    init(
+        id: Int,
+        accountId: Int,
+        categoryId: Int,
+        amount: Decimal,
+        transactionDate: Date,
+        comment: String?,
+        createdAt: Date,
+        updatedAt: Date
+    ) {
         self.id = id
         self.accountId = accountId
         self.categoryId = categoryId

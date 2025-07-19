@@ -1,5 +1,3 @@
-// Financify/Financify/Services/BankAccountService.swift
-
 import Foundation
 import SwiftData
 
@@ -110,10 +108,9 @@ final actor BankAccountService: BankAccountServiceLogic {
         let allPendingOperations = try await backupService.fetchAll()
             .sorted(by: { $0.timestamp < $1.timestamp })
 
-        // НОВОЕ: Словарь для отслеживания промежуточных состояний измененных транзакций
         var pendingTransactionStates: [Int: TransactionRequest] = [:]
 
-        // 4. Последовательно применяем КАЖДУЮ операцию
+        // 4. Последовательно применяем каждую операцию
         for operation in allPendingOperations {
             if operation.endpointPath.starts(with: "/accounts") {
                 if operation.httpMethod == "PUT", let payload = operation.payload {
@@ -140,10 +137,8 @@ final actor BankAccountService: BankAccountServiceLogic {
                         var oldAmount: Decimal
                         var oldCategoryIsIncome: Bool
 
-                        // Ищем "старое" значение: сначала в нашем словаре, потом в базе
                         if let previousPendingState = pendingTransactionStates[id] {
                             oldAmount = previousPendingState.amount
-                            // Категория тоже могла измениться
                             if let previousCategory = try? await fetchCategory(withId: previousPendingState.categoryId) {
                                 oldCategoryIsIncome = previousCategory.isIncome
                             } else { continue }
@@ -160,7 +155,6 @@ final actor BankAccountService: BankAccountServiceLogic {
                         let newAmountSigned = newCategory.isIncome ? newRequest.amount : -newRequest.amount
                         delta = newAmountSigned - oldAmountSigned
                         
-                        // Сохраняем новое состояние в наш временный словарь
                         pendingTransactionStates[id] = newRequest
                     }
                 case "DELETE":
@@ -185,7 +179,6 @@ final actor BankAccountService: BankAccountServiceLogic {
                         delta = -amountToRevert
                         
                         // Помечаем транзакцию как удаленную в нашем словаре, чтобы не использовать ее дальше
-                        // (хотя DELETE обычно последняя операция)
                         pendingTransactionStates.removeValue(forKey: id)
                     }
                 default:
@@ -195,7 +188,6 @@ final actor BankAccountService: BankAccountServiceLogic {
             }
         }
 
-        // 5. Устанавливаем финальный вычисленный баланс
         primaryAccount.balance = calculatedBalance
         return primaryAccount
     }

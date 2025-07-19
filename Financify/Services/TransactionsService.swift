@@ -84,7 +84,7 @@ final actor TransactionsService: TransactionsServiceLogic {
     
     // MARK: - Private: Local Store & Backup
     private func fetchLocalTransactions(filter: (Transaction) -> Bool) async throws -> [Transaction] {
-        // 1. Загружаем только НЕ помеченные на удаление транзакции для отображения в UI
+        // Загружаем только НЕ помеченные на удаление транзакции для отображения в UI
         let storedDescriptor = FetchDescriptor<PersistentTransaction>(
             predicate: #Predicate { !$0.isPendingDeletion }
         )

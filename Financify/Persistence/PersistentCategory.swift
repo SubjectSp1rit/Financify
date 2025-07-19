@@ -1,5 +1,3 @@
-// Financify/Financify/SwiftData/Models/PersistentCategory.swift
-
 import Foundation
 import SwiftData
 
@@ -31,10 +29,20 @@ final class PersistentCategory: Sendable {
     }
     
     convenience init(from domain: Category) {
-        self.init(id: domain.id, name: domain.name, emoji: domain.emoji, isIncome: domain.isIncome)
+        self.init(
+            id: domain.id,
+            name: domain.name,
+            emoji: domain.emoji,
+            isIncome: domain.isIncome
+        )
     }
     
     func toDomain() -> Category {
-        Category(id: id, name: name, emoji: emoji, isIncome: isIncome)
+        Category(
+            id: id,
+            name: name,
+            emoji: emoji,
+            isIncome: isIncome
+        )
     }
 }
