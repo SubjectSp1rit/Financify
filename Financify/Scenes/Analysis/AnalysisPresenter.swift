@@ -5,6 +5,12 @@ final class AnalysisPresenter: AnalysisPresentationLogic {
     weak var view: AnalysisViewController?
     
     // MARK: - Methods
+    func presentOfflineStatus(isOffline: Bool) async {
+        DispatchQueue.main.async { [weak view] in
+            view?.displayOfflineStatus(isOffline: isOffline)
+        }
+    }
+    
     func presentCategories(
         summaries: [CategorySummary],
         total: Decimal,
@@ -46,7 +52,7 @@ final class AnalysisPresenter: AnalysisPresentationLogic {
             let icon = String(cat.emoji)
             let title = cat.name
 
-            let comment = tx.comment?.isEmpty == false ? tx.comment : nil
+            let comment = tx.comment
 
             let amountStr = tx.amount.moneyFormatted + " " + currency.rawValue
 
@@ -66,6 +72,12 @@ final class AnalysisPresenter: AnalysisPresentationLogic {
 
         DispatchQueue.main.async { [weak view] in
             view?.applyTransactions(vms)
+        }
+    }
+    
+    func presentLoading(isLoading: Bool) async {
+        DispatchQueue.main.async { [weak view] in
+            view?.displayLoading(isLoading: isLoading)
         }
     }
 }

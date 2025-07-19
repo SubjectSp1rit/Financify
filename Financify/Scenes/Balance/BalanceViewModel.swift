@@ -1,73 +1,67 @@
+// Financify/Financify/Scenes/Balance/BalanceViewModel.swift
+
 import SwiftUI
 
 @MainActor
 final class BalanceViewModel: ObservableObject {
     // MARK: - Services
-    private let categoriesService: CategoriesServiceLogic
-    private let transactionsService: TransactionsServiceLogic
     private let bankAccountService: BankAccountServiceLogic
+    private let reachability: NetworkReachabilityLogic
     
     // MARK: - Published
-    @Published private(set) var categories: [Int:Category] = [:]
-    @Published private(set) var transactions: [Transaction] = []
     @Published var isLoading: Bool = false
+    @Published var isSyncing: Bool = false
+    @Published var isOffline: Bool = false
+    
     @Published var selectedCurrency: Currency = .rub {
         didSet {
-            // Если новое значение такое же, как и старое - игнорируем изменение
             guard oldValue != selectedCurrency else { return }
-            
             Task {
                 try? await bankAccountService.updatePrimaryCurrency(with: selectedCurrency)
                 await refreshBalance()
             }
         }
     }
+    @Published private(set) var total: Decimal = 0
     
     // MARK: - Properties
-    @Published private(set) var total: Decimal = 0
+    private var networkStatusTask: Task<Void, Never>? = nil
     
     // MARK: - Lifecycle
     init(
         bankAccountService: BankAccountServiceLogic,
-        categoriesService: CategoriesServiceLogic,
-        transactionsService: TransactionsServiceLogic
+        reachability: NetworkReachabilityLogic
     ) {
         self.bankAccountService = bankAccountService
-        self.categoriesService   = categoriesService
-        self.transactionsService = transactionsService
+        self.reachability = reachability
+        
+        self.isOffline = reachability.currentStatus == .offline
+        listenForNetworkStatusChanges()
+    }
+    
+    deinit {
+        networkStatusTask?.cancel()
     }
     
     // MARK: - Methods
-    /// Загружает аккаунт + все транзакции, фильтрует по updatedAt и пересчитывает balance
     func refreshBalance() async {
+        if reachability.currentStatus == .online {
+            isSyncing = true
+        }
+        
         isLoading = true
-        defer { isLoading = false }
+        
+        defer {
+            isLoading = false
+            isSyncing = false
+        }
 
         do {
-            let cats = try await categoriesService.getAllCategories()
-            let categoryMap = Dictionary(uniqueKeysWithValues: cats.map { ($0.id, $0) })
-
             let account = try await bankAccountService.primaryAccount()
-
-            let allTransactions = try await transactionsService.getAllTransactions()
-
-            // Оставляем только те транзакции, которые проведены после updatedAt
-            let relevant = allTransactions.filter { $0.transactionDate > account.updatedAt }
-
-            // Считаем актуальный баланс
-            let delta = relevant.reduce(Decimal(0)) { acc, tx in
-                guard let cat = categoryMap[tx.categoryId] else { return acc }
-                return cat.direction == .income
-                    ? acc + tx.amount
-                    : acc - tx.amount
-            }
-
-            total = account.balance + delta
-            
+            total = account.balance
             selectedCurrency = Currency(jsonTitle: account.currency)
-
         } catch {
-            print(error.localizedDescription)
+            print("Failed to refresh BalanceViewModel: \(error.localizedDescription)")
         }
     }
     
@@ -80,12 +74,20 @@ final class BalanceViewModel: ObservableObject {
         }
     }
     
-    func updatePrimaryCurrency(to newCurrency: Currency) async {
-        do {
-            try await bankAccountService.updatePrimaryCurrency(with: newCurrency)
-            selectedCurrency = newCurrency
-        } catch {
-            print(error.localizedDescription)
+    // MARK: - Private Methods
+    private func listenForNetworkStatusChanges() {
+        networkStatusTask = Task(priority: .userInitiated) { @MainActor in
+            for await status in reachability.statusStream {
+                let wasOffline = self.isOffline
+                self.isOffline = status == .offline
+                
+                if wasOffline && !self.isOffline {
+                    Task { @MainActor [weak self] in
+                        guard let self else { return }
+                        await refreshBalance()
+                    }
+                }
+            }
         }
     }
 }

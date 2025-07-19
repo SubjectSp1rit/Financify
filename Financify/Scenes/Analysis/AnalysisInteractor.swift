@@ -6,6 +6,7 @@ final class AnalysisInteractor: AnalysisBusinessLogic, AnalysisBusinessStorage {
     private let categoriesService: CategoriesServiceLogic
     private let transactionsService: TransactionsServiceLogic
     private let bankAccountService: BankAccountServiceLogic
+    private let reachability: NetworkReachabilityLogic
     
     // MARK: - Properties
     let direction: Direction
@@ -15,6 +16,8 @@ final class AnalysisInteractor: AnalysisBusinessLogic, AnalysisBusinessStorage {
     private(set) var summaries: [CategorySummary] = []
     private(set) var isLoading: Bool = false
     private(set) var currency: Currency = .rub
+    private(set) var isOffline: Bool = false
+    private var networkStatusTask: Task<Void, Never>? = nil
     
     private(set) var fromDate: Date {
         willSet {
@@ -69,16 +72,25 @@ final class AnalysisInteractor: AnalysisBusinessLogic, AnalysisBusinessStorage {
         direction: Direction,
         categoriesService: CategoriesServiceLogic,
         transactionsService: TransactionsServiceLogic,
-        bankAccountService: BankAccountServiceLogic
+        bankAccountService: BankAccountServiceLogic,
+        reachability: NetworkReachabilityLogic
     ) {
         self.presenter = presenter
         self.direction = direction
         self.categoriesService   = categoriesService
         self.transactionsService = transactionsService
         self.bankAccountService = bankAccountService
+        self.reachability = reachability
         
         self.toDate = Date()
         self.fromDate =  calendar.date(byAdding: .month, value: -1, to: Date())!
+        
+        self.isOffline = reachability.currentStatus == .offline
+        listenForNetworkStatusChanges()
+    }
+    
+    deinit {
+        networkStatusTask?.cancel()
     }
     
     // MARK: - Methods
@@ -99,17 +111,24 @@ final class AnalysisInteractor: AnalysisBusinessLogic, AnalysisBusinessStorage {
     }
     
     func refresh() async {
+        await presenter.presentOfflineStatus(isOffline: self.isOffline)
         isLoading = true
-        defer { isLoading = false }
+        await presenter.presentLoading(isLoading: true)
 
+        defer {
+            isLoading = false
+            Task { await presenter.presentLoading(isLoading: false) }
+        }
+        
         do {
             async let accountTask = bankAccountService.primaryAccount()
             async let catsTask = categoriesService.getAllCategories()
-            async let txsTask = transactionsService.getAllTransactions {
+
+            let (account, cats) = try await (accountTask, catsTask)
+            
+            let txsRaw = try await transactionsService.getAllTransactions(by: account.id) {
                 (startOfDay...endOfDay).contains($0.transactionDate)
             }
-
-            let (account, cats, txsRaw) = try await (accountTask, catsTask, txsTask)
 
             currency   = Currency(jsonTitle: account.currency)
             categories = Dictionary(uniqueKeysWithValues: cats.map { ($0.id, $0) })
@@ -164,8 +183,41 @@ final class AnalysisInteractor: AnalysisBusinessLogic, AnalysisBusinessStorage {
             )
             
             _ = await (sendCats, sendTxs)
+        } catch NetworkError.serverError(let statusCode, let data) {
+            print("Ошибка сервера – статус \(statusCode)")
+            if let data = data,
+               let body = String(data: data, encoding: .utf8) {
+                print("Тело ответа сервера:\n\(body)")
+            }
+        } catch NetworkError.encodingFailed(let error) {
+            print("Не удалось закодировать запрос:", error.localizedDescription)
+        } catch NetworkError.decodingFailed(let error) {
+            print("Не удалось декодировать ответ:", error.localizedDescription)
+        } catch NetworkError.missingAPIToken {
+            print("API‑токен не найден. Проверьте, что ключ задан в xcconfig")
+        } catch NetworkError.underlying(let error) {
+            print("Сетевая ошибка или другое исключение:", error.localizedDescription)
         } catch {
-            print(error.localizedDescription)
+            print("Непредвиденная ошибка: \(error.localizedDescription)")
+        }
+    }
+    
+    // MARK: - Private Methods
+    private func listenForNetworkStatusChanges() {
+        networkStatusTask = Task(priority: .userInitiated) {
+            for await status in reachability.statusStream {
+                let wasOffline = self.isOffline
+                
+                await MainActor.run {
+                    self.isOffline = status == .offline
+                }
+                
+                await presenter.presentOfflineStatus(isOffline: self.isOffline)
+                
+                if wasOffline && !self.isOffline {
+                    await self.refresh()
+                }
+            }
         }
     }
 }
@@ -178,7 +230,8 @@ extension AnalysisInteractor {
             transaction: transaction,
             categoriesService: categoriesService,
             transactionsService: transactionsService,
-            bankAccountService: bankAccountService
+            bankAccountService: bankAccountService,
+            reachability: reachability
         )
     }
 }

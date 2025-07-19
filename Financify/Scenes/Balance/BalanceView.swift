@@ -13,13 +13,11 @@ struct BalanceView: View {
     
     // MARK: - Lifecycle
     init(bankAccountService: BankAccountServiceLogic,
-         categoriesService: CategoriesServiceLogic,
-         transactionsService: TransactionsServiceLogic
+         reachability: NetworkReachabilityLogic
     ) {
         let vm = BalanceViewModel(
             bankAccountService: bankAccountService,
-            categoriesService: categoriesService,
-            transactionsService: transactionsService
+            reachability: reachability
         )
         _viewModel = StateObject(wrappedValue: vm)
     }
@@ -28,7 +26,24 @@ struct BalanceView: View {
         NavigationStack {
             List {
                 balanceSection
+                    .if(viewModel.isLoading) { view in
+                        view.redacted(reason: .placeholder)
+                    }
+                    .if(!viewModel.isLoading) { view in
+                        view.unredacted()
+                    }
                 currencySection
+                    .if(viewModel.isLoading) { view in
+                        view.redacted(reason: .placeholder)
+                    }
+                    .if(!viewModel.isLoading) { view in
+                        view.unredacted()
+                    }
+            }
+            .overlay(alignment: .center) {
+                if viewModel.isLoading {
+                    LoadingAnimation()
+                }
             }
             .refreshable {  await viewModel.refreshBalance() }
             .scrollDismissesKeyboard(.immediately)
@@ -38,6 +53,18 @@ struct BalanceView: View {
             }
             .navigationTitle(Constants.Text.navigationTitle)
             .toolbar {
+                if viewModel.isSyncing {
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        HStack(spacing: 8) {
+                            ProgressView()
+                                .progressViewStyle(.circular)
+                            Text("Синхронизация...")
+                                .font(.caption)
+                                .foregroundColor(.secondAccent)
+                        }
+                    }
+                }
+                
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: toggleEditMode) {
                         Image(systemName: isEditing ? Constants.SFSymbols.checkmark : Constants.SFSymbols.pencil)
@@ -48,6 +75,12 @@ struct BalanceView: View {
                                 )
                             )
                     }
+                }
+            }
+            .overlay(alignment: .bottom) {
+                if viewModel.isOffline {
+                    OfflineBannerView()
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
             .task { await viewModel.refreshBalance() }

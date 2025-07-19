@@ -11,13 +11,15 @@ struct TransactionsListView: View {
         direction: Direction,
         categoriesService: CategoriesServiceLogic,
         transactionsService: TransactionsServiceLogic,
-        bankAccountService: BankAccountServiceLogic
+        bankAccountService: BankAccountServiceLogic,
+        reachability: NetworkReachabilityLogic
     ) {
         let vm = TransactionsListViewModel(
             direction: direction,
             categoriesService: categoriesService,
             transactionsService: transactionsService,
-            bankAccountService: bankAccountService
+            bankAccountService: bankAccountService,
+            reachability: reachability
         )
         _viewModel = StateObject(wrappedValue: vm)
     }
@@ -29,13 +31,23 @@ struct TransactionsListView: View {
                     SortCell(
                         selectedOption: $viewModel.selectedSortOption
                     )
-                        .redacted(reason: viewModel.isLoading ? .placeholder : [])
+                    .if(viewModel.isLoading) { view in
+                        view.redacted(reason: .placeholder)
+                    }
+                    .if(!viewModel.isLoading) { view in
+                        view.unredacted()
+                    }
                     SummaryCell(
                         total: viewModel.total,
                         title: .summaryTitle,
                         currency: viewModel.currency
                     )
-                        .redacted(reason: viewModel.isLoading ? .placeholder : [])
+                    .if(viewModel.isLoading) { view in
+                        view.redacted(reason: .placeholder)
+                    }
+                    .if(!viewModel.isLoading) { view in
+                        view.unredacted()
+                    }
                 }
                 
                 Section(String.operationsHeader) {
@@ -57,11 +69,17 @@ struct TransactionsListView: View {
             }
             .animation(.easeInOut(duration: 0.3), value: viewModel.transactions)
             .overlay(alignment: .center) {
-                // Пока данные грузятся - показываем анимацию загрузки по центру экрана
-                if viewModel.isLoading && viewModel.transactions.isEmpty {
+                if viewModel.isLoading && !viewModel.isOffline && viewModel.transactions.isEmpty {
                     LoadingAnimation()
                 }
             }
+            .overlay(alignment: .bottom) {
+                if viewModel.isOffline {
+                    OfflineBannerView()
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+            }
+            .animation(.easeInOut, value: viewModel.isOffline)
             .overlay(alignment: .bottomTrailing) {
                 Button(action: {
                     isPresentingNew = true
@@ -78,20 +96,35 @@ struct TransactionsListView: View {
             }
             .navigationTitle(viewModel.direction.title)
             .toolbar {
+                if viewModel.isSyncing {
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        HStack(spacing: 8) {
+                            ProgressView()
+                                .progressViewStyle(.circular)
+                            Text("Синхронизация...")
+                                .font(.caption)
+                                .foregroundColor(.secondAccent)
+                        }
+                    }
+                }
+                
                 ToolbarItem(placement: .navigationBarTrailing) {
                     NavigationLink(
                         destination: HistoryView(
                             direction: viewModel.direction,
                             categoriesService: viewModel.categoriesService,
                             transactionsService: viewModel.transactionsService,
-                            bankAccountService: viewModel.bankAccountService
+                            bankAccountService: viewModel.bankAccountService,
+                            reachability: viewModel.reachability
                         )
                     ) {
                         Image(systemName: .clockIconName)
                     }
                 }
             }
-            .task { await viewModel.refresh() }
+            .task {
+                await viewModel.refresh()
+            }
             // Создание операции
             .fullScreenCover(isPresented: $isPresentingNew, onDismiss: {
                 Task { await viewModel.refresh() }
@@ -102,7 +135,8 @@ struct TransactionsListView: View {
                     transaction: nil,
                     categoriesService: viewModel.categoriesService,
                     transactionsService: viewModel.transactionsService,
-                    bankAccountService: viewModel.bankAccountService
+                    bankAccountService: viewModel.bankAccountService,
+                    reachability: viewModel.reachability
                 )
             }
             
@@ -116,7 +150,8 @@ struct TransactionsListView: View {
                     transaction: tx,
                     categoriesService: viewModel.categoriesService,
                     transactionsService: viewModel.transactionsService,
-                    bankAccountService: viewModel.bankAccountService
+                    bankAccountService: viewModel.bankAccountService,
+                    reachability: viewModel.reachability
                 )
             }
         }

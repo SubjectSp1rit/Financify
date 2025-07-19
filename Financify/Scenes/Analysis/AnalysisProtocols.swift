@@ -2,6 +2,7 @@ import Foundation
 
 protocol AnalysisBusinessStorage {
     var total: Decimal { get }
+    var isLoading: Bool { get } 
     var transactions: [Transaction] { get }
     var direction: Direction { get }
     var summaries: [CategorySummary] { get }
@@ -32,5 +33,14 @@ protocol AnalysisPresentationLogic {
         total: Decimal,
         currency: Currency,
         categories: [Int: Category]
+    ) async
+    
+    func presentLoading(
+        isLoading: Bool
+    ) async
+    
+    
+    func presentOfflineStatus(
+        isOffline: Bool
     ) async
 }

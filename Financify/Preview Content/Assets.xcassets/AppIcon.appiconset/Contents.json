@@ -1,6 +1,7 @@
 {
   "images" : [
     {
+      "filename" : "Neon Finance App Logo Jul 17 2025 (1).png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
@@ -12,6 +13,7 @@
           "value" : "dark"
         }
       ],
+      "filename" : "Neon Finance App Logo Jul 17 2026.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
@@ -23,6 +25,7 @@
           "value" : "tinted"
         }
       ],
+      "filename" : "Neon Finance App Logo Jul 17 2025.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"

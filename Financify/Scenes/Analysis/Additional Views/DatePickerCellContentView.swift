@@ -1,4 +1,5 @@
 import UIKit
+import SkeletonView
 
 final class DatePickerCellContentView: UIView, UIContentView {
     // MARK: UIContentView
@@ -24,6 +25,7 @@ final class DatePickerCellContentView: UIView, UIContentView {
         setupStaticUI()
         apply(configuration)
     }
+    
     required init?(coder: NSCoder) { nil }
 
     // MARK: – Private Methods

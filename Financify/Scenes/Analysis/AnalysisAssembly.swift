@@ -6,6 +6,7 @@ enum AnalysisAssembly {
         categoriesService: CategoriesServiceLogic,
         transactionsService: TransactionsServiceLogic,
         bankAccountService: BankAccountServiceLogic,
+        reachability: NetworkReachabilityLogic,
         onClose: @escaping () -> Void
     ) -> UIViewController {
         let presenter = AnalysisPresenter()
@@ -14,7 +15,8 @@ enum AnalysisAssembly {
             direction: direction,
             categoriesService: categoriesService,
             transactionsService: transactionsService,
-            bankAccountService: bankAccountService
+            bankAccountService: bankAccountService,
+            reachability: reachability
         )
         let view = AnalysisViewController(interactor: interactor)
         view.onClose = onClose
