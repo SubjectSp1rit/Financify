@@ -1,4 +1,5 @@
 import SwiftUI
+import Charts
 
 struct BalanceView: View {
     // MARK: - Properties
@@ -11,12 +12,22 @@ struct BalanceView: View {
     @State private var editingTotalText: String = ""
     @FocusState private var totalFieldIsFocused: Bool
     
+    private let xAxisDateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "dd.MM"
+        return formatter
+    }()
+    
     // MARK: - Lifecycle
     init(bankAccountService: BankAccountServiceLogic,
+         transactionsService: TransactionsServiceLogic,
+         categoriesService: CategoriesServiceLogic,
          reachability: NetworkReachabilityLogic
     ) {
         let vm = BalanceViewModel(
             bankAccountService: bankAccountService,
+            transactionsService: transactionsService,
+            categoriesService: categoriesService,
             reachability: reachability
         )
         _viewModel = StateObject(wrappedValue: vm)
@@ -33,6 +44,14 @@ struct BalanceView: View {
                         view.unredacted()
                     }
                 currencySection
+                    .if(viewModel.isLoading) { view in
+                        view.redacted(reason: .placeholder)
+                    }
+                    .if(!viewModel.isLoading) { view in
+                        view.unredacted()
+                    }
+                
+                chartSection
                     .if(viewModel.isLoading) { view in
                         view.redacted(reason: .placeholder)
                     }
@@ -169,6 +188,52 @@ struct BalanceView: View {
                 }
             }
         }
+    }
+    
+    @ViewBuilder
+    private var chartSection: some View {
+        if !isEditing, !viewModel.chartData.isEmpty, viewModel.chartDateLabels != nil {
+            Section {
+                VStack(alignment: .leading, spacing: 16) {
+                    balanceChart
+                }
+                .padding(.vertical)
+            }
+            .listRowInsets(.init(top: 0, leading: 16, bottom: 0, trailing: 16))
+            .listRowBackground(Color.clear)
+        }
+    }
+    
+    private var balanceChart: some View {
+        let  labels = viewModel.chartDateLabels!
+
+        let chartView = Chart(viewModel.chartData) { day in
+            RuleMark(
+                x: .value("Дата", day.date, unit: .day),
+                yStart: .value("Начало", 0),
+                yEnd: .value("Конец", day.amount < 0 ? -day.amount : day.amount)
+            )
+            .foregroundStyle(by: .value("Тип", day.type.rawValue))
+            .lineStyle(StrokeStyle(lineWidth: 8, lineCap: .round))
+        }
+        .chartForegroundStyleScale([
+            DailyBalanceChange.BalanceChangeType.income.rawValue: Color.accent,
+            DailyBalanceChange.BalanceChangeType.expense.rawValue: Color.orange
+        ])
+        .chartXAxis {
+            AxisMarks(values: [labels.start, labels.mid, labels.end]) { value in
+                if let date = value.as(Date.self) {
+                    AxisValueLabel {
+                        Text(date, formatter: xAxisDateFormatter)
+                    }.offset(x: date == labels.end ? -32 : 0)
+                }
+            }
+        }
+        .chartYAxis(.hidden)
+        .chartLegend(.hidden)
+        .frame(height: 150)
+
+        return chartView
     }
     
     // MARK: - Private Methods
