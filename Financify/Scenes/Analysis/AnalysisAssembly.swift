@@ -1,5 +1,6 @@
 import UIKit
 
+@MainActor
 enum AnalysisAssembly {
     static func build(
         direction: Direction,

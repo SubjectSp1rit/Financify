@@ -1,5 +1,5 @@
 {
-  "originHash" : "c991eccc3c90026e2867216ce064f612f045523a3e85ccc58d9da6e2c89d9e47",
+  "originHash" : "78b5ba5aab7c3523f140e7b6a89ce3fd49057c4cb1f4984263568722754cb4a1",
   "pins" : [
     {
       "identity" : "alamofire",
@@ -11,12 +11,12 @@
       }
     },
     {
-      "identity" : "skeletonview",
+      "identity" : "lottie-ios",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/Juanpe/SkeletonView",
+      "location" : "https://github.com/airbnb/lottie-ios.git",
       "state" : {
-        "revision" : "2f5274827d310e32c09325dd3e0007120940988e",
-        "version" : "1.31.0"
+        "revision" : "a004050748dc197c56256a14dca49a035d74726c",
+        "version" : "4.5.2"
       }
     }
   ],

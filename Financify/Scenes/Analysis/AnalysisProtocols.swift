@@ -1,4 +1,5 @@
 import Foundation
+import PieChart
 
 protocol AnalysisBusinessStorage {
     var total: Decimal { get }
@@ -34,6 +35,12 @@ protocol AnalysisPresentationLogic {
         currency: Currency,
         categories: [Int: Category]
     ) async
+    
+    func presentChart(summaries: [CategorySummary]) async
+    
+    func presentSortOptionChanged() async
+    
+    func presentDateControlsRefreshed() async
     
     func presentLoading(
         isLoading: Bool

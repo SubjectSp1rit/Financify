@@ -7,9 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		AE300B4A2E2AE30300D69865 /* AlamofireDynamic in Embed Frameworks */ = {isa = PBXBuildFile; productRef = AE3DEA052E25BB9A00DE5079 /* AlamofireDynamic */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		AE3DEA062E25BB9A00DE5079 /* AlamofireDynamic in Frameworks */ = {isa = PBXBuildFile; productRef = AE3DEA052E25BB9A00DE5079 /* AlamofireDynamic */; };
-		AEBDFB712E29401D005F02C1 /* SkeletonView in Frameworks */ = {isa = PBXBuildFile; productRef = AEBDFB702E29401D005F02C1 /* SkeletonView */; };
+		AE748D332E319D3900999287 /* PieChart in Frameworks */ = {isa = PBXBuildFile; productRef = AE748D322E319D3900999287 /* PieChart */; };
+		AEFF28692E32868E004F6685 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = AEFF28682E32868E004F6685 /* Alamofire */; };
+		AEFF286C2E3287F4004F6685 /* LaunchAnimation in Frameworks */ = {isa = PBXBuildFile; productRef = AEFF286B2E3287F4004F6685 /* LaunchAnimation */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -29,7 +29,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				AE300B4A2E2AE30300D69865 /* AlamofireDynamic in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -79,8 +78,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AEBDFB712E29401D005F02C1 /* SkeletonView in Frameworks */,
-				AE3DEA062E25BB9A00DE5079 /* AlamofireDynamic in Frameworks */,
+				AE748D332E319D3900999287 /* PieChart in Frameworks */,
+				AEFF28692E32868E004F6685 /* Alamofire in Frameworks */,
+				AEFF286C2E3287F4004F6685 /* LaunchAnimation in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -92,6 +92,7 @@
 			children = (
 				AE19BFED2DF8426B00879DED /* Financify */,
 				AE07DD352DFB0FC700E128D9 /* UnitTests */,
+				AE748D2E2E319B9D00999287 /* Frameworks */,
 				AE19BFEC2DF8426B00879DED /* Products */,
 			);
 			sourceTree = "<group>";
@@ -103,6 +104,13 @@
 				AE07DD342DFB0FC700E128D9 /* UnitTests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		AE748D2E2E319B9D00999287 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -150,8 +158,9 @@
 			);
 			name = Financify;
 			packageProductDependencies = (
-				AE3DEA052E25BB9A00DE5079 /* AlamofireDynamic */,
-				AEBDFB702E29401D005F02C1 /* SkeletonView */,
+				AE748D322E319D3900999287 /* PieChart */,
+				AEFF28682E32868E004F6685 /* Alamofire */,
+				AEFF286B2E3287F4004F6685 /* LaunchAnimation */,
 			);
 			productName = Financify;
 			productReference = AE19BFEB2DF8426B00879DED /* Financify.app */;
@@ -187,8 +196,9 @@
 			mainGroup = AE19BFE22DF8426B00879DED;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				AE3DEA042E25BB9A00DE5079 /* XCRemoteSwiftPackageReference "Alamofire" */,
-				AEBDFB6F2E29401D005F02C1 /* XCRemoteSwiftPackageReference "SkeletonView" */,
+				AE748D312E319D3900999287 /* XCLocalSwiftPackageReference "Utilities" */,
+				AEFF28672E32868E004F6685 /* XCRemoteSwiftPackageReference "Alamofire" */,
+				AEFF286A2E3287F4004F6685 /* XCLocalSwiftPackageReference "LaunchAnimation" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = AE19BFEC2DF8426B00879DED /* Products */;
@@ -455,7 +465,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = se.hse.Financify;
+				PRODUCT_BUNDLE_IDENTIFIER = se.hse.Arseniy;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -486,7 +496,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = se.hse.Financify;
+				PRODUCT_BUNDLE_IDENTIFIER = se.hse.Arseniy;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -526,35 +536,41 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCLocalSwiftPackageReference section */
+		AE748D312E319D3900999287 /* XCLocalSwiftPackageReference "Utilities" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Utilities;
+		};
+		AEFF286A2E3287F4004F6685 /* XCLocalSwiftPackageReference "LaunchAnimation" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = LaunchAnimation;
+		};
+/* End XCLocalSwiftPackageReference section */
+
 /* Begin XCRemoteSwiftPackageReference section */
-		AE3DEA042E25BB9A00DE5079 /* XCRemoteSwiftPackageReference "Alamofire" */ = {
+		AEFF28672E32868E004F6685 /* XCRemoteSwiftPackageReference "Alamofire" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/Alamofire/Alamofire.git";
+			repositoryURL = "https://github.com/Alamofire/Alamofire";
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 5.10.2;
 			};
 		};
-		AEBDFB6F2E29401D005F02C1 /* XCRemoteSwiftPackageReference "SkeletonView" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/Juanpe/SkeletonView";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.31.0;
-			};
-		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		AE3DEA052E25BB9A00DE5079 /* AlamofireDynamic */ = {
+		AE748D322E319D3900999287 /* PieChart */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = AE3DEA042E25BB9A00DE5079 /* XCRemoteSwiftPackageReference "Alamofire" */;
-			productName = AlamofireDynamic;
+			productName = PieChart;
 		};
-		AEBDFB702E29401D005F02C1 /* SkeletonView */ = {
+		AEFF28682E32868E004F6685 /* Alamofire */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = AEBDFB6F2E29401D005F02C1 /* XCRemoteSwiftPackageReference "SkeletonView" */;
-			productName = SkeletonView;
+			package = AEFF28672E32868E004F6685 /* XCRemoteSwiftPackageReference "Alamofire" */;
+			productName = Alamofire;
+		};
+		AEFF286B2E3287F4004F6685 /* LaunchAnimation */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = LaunchAnimation;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

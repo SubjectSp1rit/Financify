@@ -1,5 +1,6 @@
 import UIKit
 import SwiftUI
+import PieChart
 
 final class AnalysisViewController: UIViewController {
     typealias AnalysisInteractorProtocols = (AnalysisBusinessLogic & AnalysisBusinessStorage)
@@ -9,6 +10,7 @@ final class AnalysisViewController: UIViewController {
     private var interactor: AnalysisInteractorProtocols
     private var cellViewModels: [CategoryCellViewModel] = []
     private var transactionViewModels: [TransactionCellViewModel] = []
+    private var chartEntities: [Entity] = []
     private var showAllCategories = false
     private var offlineBannerVC: UIHostingController<OfflineBannerView>?
     private var isOffline = false
@@ -88,7 +90,7 @@ final class AnalysisViewController: UIViewController {
             updateOfflineBannerVisibility(isVisible: false, animated: false)
             
             let host = UIHostingController(rootView: LoadingAnimation())
-            host.view.backgroundColor = .systemGroupedBackground
+            host.view.backgroundColor = .systemGroupedBackground.withAlphaComponent(0.7)
             addChild(host)
             view.addSubview(host.view)
             host.view.pin(to: view)
@@ -111,14 +113,76 @@ final class AnalysisViewController: UIViewController {
         }
     }
     
-    func applyCategories(viewModels: [CategoryCellViewModel]) {
-        self.cellViewModels = viewModels
-        table.reloadData()
+    func applyCategories(viewModels: [CategoryCellViewModel]) async {
+        await MainActor.run {
+            self.cellViewModels = viewModels
+            table.reloadSections(IndexSet(integer: Section.categories.rawValue), with: .automatic)
+        }
     }
     
-    func applyTransactions(_ vms: [TransactionCellViewModel]) {
-        self.transactionViewModels = vms
-        table.reloadData()
+    func applyTransactions(_ vms: [TransactionCellViewModel]) async {
+        await MainActor.run {
+            self.transactionViewModels = vms
+            table.reloadSections(IndexSet(integer: Section.transactions.rawValue), with: .automatic)
+        }
+    }
+    
+    func applyChart(_ entities: [Entity]) async {
+        await MainActor.run {
+            let oldEntities = self.chartEntities
+            let oldIsHidden = oldEntities.isEmpty
+            let newIsHidden = entities.isEmpty
+            
+            self.chartEntities = entities
+            
+            if oldIsHidden != newIsHidden {
+                table.reloadSections(IndexSet(integer: Section.chart.rawValue), with: .automatic)
+            } else if !newIsHidden && oldEntities != entities {
+                let chartIndexPath = IndexPath(row: 0, section: Section.chart.rawValue)
+                if let cell = table.cellForRow(at: chartIndexPath) as? ChartCell {
+                    cell.configure(with: entities, animated: true)
+                } else {
+                    table.reloadRows(at: [chartIndexPath], with: .none)
+                }
+            }
+        }
+    }
+
+    func applySortOptionChanged() async {
+        await MainActor.run {
+            let sortCellIndexPath = IndexPath(
+                row: ControlRow.sort.rawValue,
+                section: Section.controls.rawValue
+            )
+            table.reloadRows(at: [sortCellIndexPath], with: .none)
+        }
+    }
+    
+    func applyDateControlsRefreshed() async {
+        await MainActor.run {
+            let fromIndexPath = IndexPath(row: ControlRow.dateFrom.rawValue, section: Section.controls.rawValue)
+            let toIndexPath = IndexPath(row: ControlRow.dateTo.rawValue, section: Section.controls.rawValue)
+
+            if let fromCell = table.cellForRow(at: fromIndexPath) {
+                let config = DatePickerCellConfiguration(
+                    kind: .from(interactor.fromDate),
+                    onDateChanged: { [weak self] date in
+                        Task { await self?.interactor.setFromDate(date) }
+                    }
+                )
+                fromCell.contentConfiguration = config
+            }
+            
+            if let toCell = table.cellForRow(at: toIndexPath) {
+                let config = DatePickerCellConfiguration(
+                    kind: .to(interactor.toDate),
+                    onDateChanged: { [weak self] date in
+                        Task { await self?.interactor.setToDate(date) }
+                    }
+                )
+                toCell.contentConfiguration = config
+            }
+        }
     }
     
     // MARK: - Private Methods
@@ -131,6 +195,7 @@ final class AnalysisViewController: UIViewController {
         table.register(UITableViewCell.self, forCellReuseIdentifier: ReuseID.sort)
         table.register(UITableViewCell.self, forCellReuseIdentifier: ReuseID.category)
         table.register(UITableViewCell.self, forCellReuseIdentifier: ReuseID.transaction)
+        table.register(ChartCell.self, forCellReuseIdentifier: ReuseID.chart)
     }
     
     private func setupConstraints() {
@@ -273,7 +338,7 @@ extension AnalysisViewController: UITableViewDataSource {
         case .controls:
             return ControlRow.allCases.count
         case .chart:
-            return 0
+            return chartEntities.isEmpty ? 0 : 1
         case .categories:
             return cellViewModels.count
         case .transactions:
@@ -324,10 +389,7 @@ extension AnalysisViewController: UITableViewDataSource {
                 return makeSummaryCell(at: indexPath)
             }
         case .chart:
-            return tableView.dequeueReusableCell(
-                withIdentifier: ReuseID.base,
-                for: indexPath
-            )
+            return makeChartCell(at: indexPath)
         case .categories:
             return makeCategoryCell(
                 viewModel: cellViewModels[indexPath.row],
@@ -437,6 +499,15 @@ extension AnalysisViewController: UITableViewDataSource {
         cell.selectionStyle = .none
         return cell
     }
+    
+    private func makeChartCell(at indexPath: IndexPath) -> UITableViewCell {
+        let cell = table.dequeueReusableCell(
+            withIdentifier: ReuseID.chart,
+            for: indexPath
+        ) as! ChartCell
+        cell.configure(with: chartEntities, animated: false)
+        return cell
+    }
 
     private func makeCategoryCell(
         viewModel vm: CategoryCellViewModel,
@@ -490,6 +561,7 @@ private enum ReuseID {
     static let base = "cell"
     static let datePicker = "datePickerCell"
     static let summary = "summaryCell"
+    static let chart = "chartCell"
     static let sort = "sortCell"
     static let category = "categoryCell"
     static let transaction = "transactionCell"

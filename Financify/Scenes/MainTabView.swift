@@ -49,6 +49,8 @@ struct MainTabView: View {
             // Счет
             BalanceView(
                 bankAccountService: dependencies.bankAccountService,
+                transactionsService: dependencies.transactionService,
+                categoriesService: dependencies.categoryService,
                 reachability: dependencies.networkReachabilityService
             )
                 .tabItem {

@@ -1,5 +1,7 @@
 import Foundation
+import PieChart
 
+@MainActor
 final class AnalysisPresenter: AnalysisPresentationLogic {
     // MARK: - Properties
     weak var view: AnalysisViewController?
@@ -33,9 +35,23 @@ final class AnalysisPresenter: AnalysisPresentationLogic {
             )
         }
         
-        DispatchQueue.main.async { [weak view] in
-            view?.applyCategories(viewModels: vms)
+        await view?.applyCategories(viewModels: vms)
+    }
+    
+    func presentChart(summaries: [CategorySummary]) async {
+        let chartEntities = summaries.map {
+            Entity(value: $0.total, label: $0.category.name)
         }
+        
+        await view?.applyChart(chartEntities)
+    }
+    
+    func presentSortOptionChanged() async {
+        await view?.applySortOptionChanged()
+    }
+    
+    func presentDateControlsRefreshed() async {
+        await view?.applyDateControlsRefreshed()
     }
     
     func presentTransactions(
@@ -70,14 +86,10 @@ final class AnalysisPresenter: AnalysisPresentationLogic {
             )
         }
 
-        DispatchQueue.main.async { [weak view] in
-            view?.applyTransactions(vms)
-        }
+        await view?.applyTransactions(vms)
     }
     
     func presentLoading(isLoading: Bool) async {
-        DispatchQueue.main.async { [weak view] in
-            view?.displayLoading(isLoading: isLoading)
-        }
+        view?.displayLoading(isLoading: isLoading)
     }
 }

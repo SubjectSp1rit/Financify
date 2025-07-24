@@ -1,5 +1,4 @@
 import UIKit
-import SkeletonView
 
 final class DatePickerCellContentView: UIView, UIContentView {
     // MARK: UIContentView
