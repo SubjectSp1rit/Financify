@@ -6,11 +6,15 @@ struct BalanceView: View {
     @State private var isEditing: Bool = false
     @State private var showCurrencyDialog: Bool = false
     @State private var isBalanceHidden: Bool = false
+    @State private var dragLocation: CGPoint? = nil     // Координаты касания графика
+    @State private var showDetailPopup: Bool = false
     
     @StateObject private var viewModel: BalanceViewModel
     
     @State private var editingTotalText: String = ""
     @FocusState private var totalFieldIsFocused: Bool
+    
+    private let chartHorizontalPadding: CGFloat = 10
     
     private let xAxisDateFormatter: DateFormatter = {
         let formatter = DateFormatter()
@@ -218,22 +222,21 @@ struct BalanceView: View {
     }
     
     private var balanceChart: some View {
-            let labels = viewModel.chartDateLabels!
-
-            let chart = Chart(viewModel.chartData) { dataPoint in
-                RuleMark(
-                    x: .value("Дата", dataPoint.date),
-                    yStart: .value("Начало", 0),
-                    yEnd: .value("Конец", dataPoint.amount < 0 ? -dataPoint.amount : dataPoint.amount)
-                )
-                .foregroundStyle(by: .value("Тип", dataPoint.type.rawValue))
-                .lineStyle(StrokeStyle(lineWidth: viewModel.selectedPeriod == .days ? 8 : 4, lineCap: .round))
-            }
-            .chartForegroundStyleScale([
-                ChartDataPoint.BalanceChangeType.income.rawValue: Color.accent,
-                ChartDataPoint.BalanceChangeType.expense.rawValue: Color.orange
-            ])
-            .chartXAxis {
+        let chart = Chart(viewModel.chartData) { dataPoint in
+            RuleMark(
+                x: .value("Дата", dataPoint.date),
+                yStart: .value("Начало", 0),
+                yEnd: .value("Конец", dataPoint.amount < 0 ? -dataPoint.amount : dataPoint.amount)
+            )
+            .foregroundStyle(by: .value("Тип", dataPoint.type.rawValue))
+            .lineStyle(StrokeStyle(lineWidth: viewModel.selectedPeriod == .days ? 8 : 4, lineCap: .round))
+        }
+        .chartForegroundStyleScale([
+            ChartDataPoint.BalanceChangeType.income.rawValue: Color.accent,
+            ChartDataPoint.BalanceChangeType.expense.rawValue: Color.orange
+        ])
+        .chartXAxis {
+            if let labels = viewModel.chartDateLabels {
                 AxisMarks(preset: .aligned, values: [labels.start, labels.mid, labels.end]) { value in
                     if let date = value.as(Date.self) {
                         let formatter = viewModel.selectedPeriod == .days ? xAxisDateFormatter : xAxisMonthFormatter
@@ -243,14 +246,76 @@ struct BalanceView: View {
                     }
                 }
             }
-            .chartYAxis(.hidden)
-            .chartLegend(.hidden)
-            .frame(height: 150)
-            .padding(.horizontal, 10)
-            .animation(.smooth(duration: 0.7), value: viewModel.chartData)
-
-            return AnyView(chart)
         }
+        .chartYAxis(.hidden)
+        .chartLegend(.hidden)
+        .frame(height: 150)
+        .padding(.horizontal, chartHorizontalPadding)
+        .chartOverlay { proxy in
+            ChartInteractionOverlay(
+                proxy: proxy,
+                viewModel: viewModel,
+                dragLocation: $dragLocation,
+                showDetailPopup: $showDetailPopup,
+                chartHorizontalPadding: chartHorizontalPadding
+            )
+        }
+        .sheet(isPresented: $showDetailPopup) {
+            if let dataPoint = viewModel.selectedDataPoint {
+                TransactionDetailPopupView(dataPoint: dataPoint)
+                    .presentationDetents([.height(200)])
+            }
+        }
+        .animation(.easeInOut(duration: 0.2), value: viewModel.chartData)
+        .animation(.easeInOut, value: viewModel.selectedDataPoint)
+
+        return AnyView(chart)
+    }
+    
+    @ViewBuilder
+    private func chartSelectionPopover(for dataPoint: ChartDataPoint, at position: CGPoint) -> some View {
+        Rectangle()
+            .fill(Color.gray)
+            .frame(width: 1, height: 150)
+            .position(x: position.x, y: 75)
+        
+        VStack(alignment: .leading, spacing: 4) {
+            Text(dataPoint.date, style: .date)
+                .font(.caption)
+                .foregroundColor(.secondary)
+            Text(dataPoint.amount, format: .currency(code: viewModel.selectedCurrency.rawValue))
+                .font(.headline.bold())
+                .foregroundColor(dataPoint.type == .income ? .green : .primary)
+        }
+        .padding(8)
+        .background(Color(.systemBackground).opacity(0.8), in: RoundedRectangle(cornerRadius: 8))
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 8))
+        .shadow(radius: 4)
+        .position(x: position.x, y: 30)
+    }
+    
+    struct TransactionDetailPopupView: View {
+        let dataPoint: ChartDataPoint
+        
+        var body: some View {
+            VStack(spacing: 16) {
+                Text("Детали за \(dataPoint.date, style: .date)")
+                    .font(.title2.bold())
+                
+                HStack {
+                    Text("Изменение баланса:")
+                        .font(.headline)
+                    Spacer()
+                    Text(dataPoint.amount, format: .currency(code: "RUB"))
+                        .font(.headline.monospaced())
+                        .foregroundColor(dataPoint.type == .income ? .green : .red)
+                }
+                
+                Spacer()
+            }
+            .padding()
+        }
+    }
     
     
     // MARK: - Private Methods

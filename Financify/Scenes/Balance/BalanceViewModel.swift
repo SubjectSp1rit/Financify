@@ -28,11 +28,13 @@ final class BalanceViewModel: ObservableObject {
     @Published var selectedPeriod: ChartPeriod = .days {
         didSet {
             guard oldValue != selectedPeriod else { return }
+            clearChartSelection()
             updateChartData()
         }
     }
     
     @Published private(set) var total: Decimal = 0
+    @Published var selectedDataPoint: ChartDataPoint? = nil
     @Published private(set) var chartData: [ChartDataPoint] = []
     @Published private(set) var chartDateLabels: (start: Date, mid: Date, end: Date)? = nil
     
@@ -62,6 +64,11 @@ final class BalanceViewModel: ObservableObject {
     }
     
     // MARK: - Methods
+    /// Сбрасывает выделение на графике
+    func clearChartSelection() {
+        selectedDataPoint = nil
+    }
+    
     func refreshBalance() async {
         if reachability.currentStatus == .online {
             isSyncing = true
