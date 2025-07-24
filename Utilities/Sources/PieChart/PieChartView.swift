@@ -30,7 +30,6 @@ public class PieChartView: UIView {
     }
 
     public var lineWidth: CGFloat = 8
-    private var isAnimating = false
 
     private struct Segment {
         let value: CGFloat
@@ -50,14 +49,7 @@ public class PieChartView: UIView {
     ]
     
     public func animateUpdate(to newEntities: [Entity]) {
-        guard !isAnimating, !entities.isEmpty else {
-            self.entities = newEntities
-            self.prepareSegments()
-            self.setNeedsDisplay()
-            return
-        }
-        
-        isAnimating = true
+        self.layer.removeAllAnimations()
 
         let snapshotView = UIImageView(image: self.asImage())
         snapshotView.frame = self.bounds
@@ -91,7 +83,6 @@ public class PieChartView: UIView {
                 if finished {
                     self?.transform = .identity
                 }
-                self?.isAnimating = false
             })
         })
     }

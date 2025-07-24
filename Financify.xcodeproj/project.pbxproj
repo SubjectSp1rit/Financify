@@ -10,6 +10,7 @@
 		AE300B4A2E2AE30300D69865 /* AlamofireDynamic in Embed Frameworks */ = {isa = PBXBuildFile; productRef = AE3DEA052E25BB9A00DE5079 /* AlamofireDynamic */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		AE3DEA062E25BB9A00DE5079 /* AlamofireDynamic in Frameworks */ = {isa = PBXBuildFile; productRef = AE3DEA052E25BB9A00DE5079 /* AlamofireDynamic */; };
 		AE748D332E319D3900999287 /* PieChart in Frameworks */ = {isa = PBXBuildFile; productRef = AE748D322E319D3900999287 /* PieChart */; };
+		AE748D4C2E327BB600999287 /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = AE748D4B2E327BB600999287 /* Lottie */; };
 		AEBDFB712E29401D005F02C1 /* SkeletonView in Frameworks */ = {isa = PBXBuildFile; productRef = AEBDFB702E29401D005F02C1 /* SkeletonView */; };
 /* End PBXBuildFile section */
 
@@ -83,6 +84,7 @@
 				AEBDFB712E29401D005F02C1 /* SkeletonView in Frameworks */,
 				AE748D332E319D3900999287 /* PieChart in Frameworks */,
 				AE3DEA062E25BB9A00DE5079 /* AlamofireDynamic in Frameworks */,
+				AE748D4C2E327BB600999287 /* Lottie in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -163,6 +165,7 @@
 				AE3DEA052E25BB9A00DE5079 /* AlamofireDynamic */,
 				AEBDFB702E29401D005F02C1 /* SkeletonView */,
 				AE748D322E319D3900999287 /* PieChart */,
+				AE748D4B2E327BB600999287 /* Lottie */,
 			);
 			productName = Financify;
 			productReference = AE19BFEB2DF8426B00879DED /* Financify.app */;
@@ -201,6 +204,7 @@
 				AE3DEA042E25BB9A00DE5079 /* XCRemoteSwiftPackageReference "Alamofire" */,
 				AEBDFB6F2E29401D005F02C1 /* XCRemoteSwiftPackageReference "SkeletonView" */,
 				AE748D312E319D3900999287 /* XCLocalSwiftPackageReference "Utilities" */,
+				AE748D4A2E327BB600999287 /* XCRemoteSwiftPackageReference "lottie-ios" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = AE19BFEC2DF8426B00879DED /* Products */;
@@ -554,6 +558,14 @@
 				minimumVersion = 5.10.2;
 			};
 		};
+		AE748D4A2E327BB600999287 /* XCRemoteSwiftPackageReference "lottie-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/airbnb/lottie-ios";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.5.2;
+			};
+		};
 		AEBDFB6F2E29401D005F02C1 /* XCRemoteSwiftPackageReference "SkeletonView" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Juanpe/SkeletonView";
@@ -573,6 +585,11 @@
 		AE748D322E319D3900999287 /* PieChart */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = PieChart;
+		};
+		AE748D4B2E327BB600999287 /* Lottie */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AE748D4A2E327BB600999287 /* XCRemoteSwiftPackageReference "lottie-ios" */;
+			productName = Lottie;
 		};
 		AEBDFB702E29401D005F02C1 /* SkeletonView */ = {
 			isa = XCSwiftPackageProductDependency;
