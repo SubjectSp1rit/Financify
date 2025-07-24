@@ -1,4 +1,5 @@
 import Foundation
+import PieChart
 
 protocol AnalysisBusinessStorage {
     var total: Decimal { get }

@@ -1,5 +1,6 @@
 import UIKit
 import SwiftUI
+import PieChart
 
 final class AnalysisViewController: UIViewController {
     typealias AnalysisInteractorProtocols = (AnalysisBusinessLogic & AnalysisBusinessStorage)
@@ -9,6 +10,7 @@ final class AnalysisViewController: UIViewController {
     private var interactor: AnalysisInteractorProtocols
     private var cellViewModels: [CategoryCellViewModel] = []
     private var transactionViewModels: [TransactionCellViewModel] = []
+    private var chartEntities: [Entity] = []
     private var showAllCategories = false
     private var offlineBannerVC: UIHostingController<OfflineBannerView>?
     private var isOffline = false
@@ -121,6 +123,11 @@ final class AnalysisViewController: UIViewController {
         table.reloadData()
     }
     
+    func applyChart(_ entities: [Entity]) {
+        self.chartEntities = entities
+        table.reloadSections(IndexSet(integer: Section.chart.rawValue), with: .automatic)
+    }
+    
     // MARK: - Private Methods
     private func setupTable() {
         table.delegate = self
@@ -131,6 +138,7 @@ final class AnalysisViewController: UIViewController {
         table.register(UITableViewCell.self, forCellReuseIdentifier: ReuseID.sort)
         table.register(UITableViewCell.self, forCellReuseIdentifier: ReuseID.category)
         table.register(UITableViewCell.self, forCellReuseIdentifier: ReuseID.transaction)
+        table.register(ChartCell.self, forCellReuseIdentifier: ReuseID.chart)
     }
     
     private func setupConstraints() {
@@ -273,7 +281,7 @@ extension AnalysisViewController: UITableViewDataSource {
         case .controls:
             return ControlRow.allCases.count
         case .chart:
-            return 0
+            return chartEntities.isEmpty ? 0 : 1
         case .categories:
             return cellViewModels.count
         case .transactions:
@@ -324,10 +332,7 @@ extension AnalysisViewController: UITableViewDataSource {
                 return makeSummaryCell(at: indexPath)
             }
         case .chart:
-            return tableView.dequeueReusableCell(
-                withIdentifier: ReuseID.base,
-                for: indexPath
-            )
+            return makeChartCell(at: indexPath)
         case .categories:
             return makeCategoryCell(
                 viewModel: cellViewModels[indexPath.row],
@@ -437,6 +442,15 @@ extension AnalysisViewController: UITableViewDataSource {
         cell.selectionStyle = .none
         return cell
     }
+    
+    private func makeChartCell(at indexPath: IndexPath) -> UITableViewCell {
+        let cell = table.dequeueReusableCell(
+            withIdentifier: ReuseID.chart,
+            for: indexPath
+        ) as! ChartCell
+        cell.configure(with: chartEntities)
+        return cell
+    }
 
     private func makeCategoryCell(
         viewModel vm: CategoryCellViewModel,
@@ -490,6 +504,7 @@ private enum ReuseID {
     static let base = "cell"
     static let datePicker = "datePickerCell"
     static let summary = "summaryCell"
+    static let chart = "chartCell"
     static let sort = "sortCell"
     static let category = "categoryCell"
     static let transaction = "transactionCell"
