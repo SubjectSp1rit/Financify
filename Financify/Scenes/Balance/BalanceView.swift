@@ -18,6 +18,12 @@ struct BalanceView: View {
         return formatter
     }()
     
+    private let xAxisMonthFormatter: DateFormatter = {
+            let formatter = DateFormatter()
+            formatter.dateFormat = "MM.yyyy"
+            return formatter
+        }()
+    
     // MARK: - Lifecycle
     init(bankAccountService: BankAccountServiceLogic,
          transactionsService: TransactionsServiceLogic,
@@ -196,6 +202,13 @@ struct BalanceView: View {
             Section {
                 VStack(alignment: .leading, spacing: 16) {
                     balanceChart
+                    
+                    Picker("Период", selection: $viewModel.selectedPeriod) {
+                        ForEach(ChartPeriod.allCases) { period in
+                            Text(period.rawValue).tag(period)
+                        }
+                    }
+                    .pickerStyle(.segmented)
                 }
                 .padding(.vertical)
             }
@@ -205,36 +218,40 @@ struct BalanceView: View {
     }
     
     private var balanceChart: some View {
-        let  labels = viewModel.chartDateLabels!
+            let labels = viewModel.chartDateLabels!
 
-        let chartView = Chart(viewModel.chartData) { day in
-            RuleMark(
-                x: .value("Дата", day.date, unit: .day),
-                yStart: .value("Начало", 0),
-                yEnd: .value("Конец", day.amount < 0 ? -day.amount : day.amount)
-            )
-            .foregroundStyle(by: .value("Тип", day.type.rawValue))
-            .lineStyle(StrokeStyle(lineWidth: 8, lineCap: .round))
-        }
-        .chartForegroundStyleScale([
-            DailyBalanceChange.BalanceChangeType.income.rawValue: Color.accent,
-            DailyBalanceChange.BalanceChangeType.expense.rawValue: Color.orange
-        ])
-        .chartXAxis {
-            AxisMarks(values: [labels.start, labels.mid, labels.end]) { value in
-                if let date = value.as(Date.self) {
-                    AxisValueLabel {
-                        Text(date, formatter: xAxisDateFormatter)
-                    }.offset(x: date == labels.end ? -32 : 0)
+            let chart = Chart(viewModel.chartData) { dataPoint in
+                RuleMark(
+                    x: .value("Дата", dataPoint.date),
+                    yStart: .value("Начало", 0),
+                    yEnd: .value("Конец", dataPoint.amount < 0 ? -dataPoint.amount : dataPoint.amount)
+                )
+                .foregroundStyle(by: .value("Тип", dataPoint.type.rawValue))
+                .lineStyle(StrokeStyle(lineWidth: viewModel.selectedPeriod == .days ? 8 : 4, lineCap: .round))
+            }
+            .chartForegroundStyleScale([
+                ChartDataPoint.BalanceChangeType.income.rawValue: Color.accent,
+                ChartDataPoint.BalanceChangeType.expense.rawValue: Color.orange
+            ])
+            .chartXAxis {
+                AxisMarks(preset: .aligned, values: [labels.start, labels.mid, labels.end]) { value in
+                    if let date = value.as(Date.self) {
+                        let formatter = viewModel.selectedPeriod == .days ? xAxisDateFormatter : xAxisMonthFormatter
+                        AxisValueLabel {
+                            Text(date, formatter: formatter)
+                        }
+                    }
                 }
             }
-        }
-        .chartYAxis(.hidden)
-        .chartLegend(.hidden)
-        .frame(height: 150)
+            .chartYAxis(.hidden)
+            .chartLegend(.hidden)
+            .frame(height: 150)
+            .padding(.horizontal, 10)
+            .animation(.smooth(duration: 0.7), value: viewModel.chartData)
 
-        return chartView
-    }
+            return AnyView(chart)
+        }
+    
     
     // MARK: - Private Methods
     private func toggleEditMode() {

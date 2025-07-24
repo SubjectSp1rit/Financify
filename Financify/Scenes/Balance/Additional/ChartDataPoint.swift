@@ -1,6 +1,6 @@
 import Foundation
 
-struct DailyBalanceChange: Identifiable {
+struct ChartDataPoint: Identifiable, Equatable {
     let id = UUID()
     let date: Date
     let amount: Decimal
@@ -13,4 +13,11 @@ struct DailyBalanceChange: Identifiable {
         case income = "Доход"
         case expense = "Расход"
     }
+}
+
+enum ChartPeriod: String, CaseIterable, Identifiable {
+    case days = "По дням"
+    case months = "По месяцам"
+    
+    var id: String { self.rawValue }
 }
