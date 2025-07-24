@@ -260,7 +260,7 @@ struct BalanceView: View {
             ChartDataPoint.BalanceChangeType.expense.rawValue: Color.orange
         ])
         .chartXAxis {
-            AxisMarks(preset: .aligned, gvalues: [labels.start, labels.mid, labels.end]) { value in
+            AxisMarks(preset: .aligned, values: [labels.start, labels.mid, labels.end]) { value in
                 if let date = value.as(Date.self) {
                     let formatter = viewModel.selectedPeriod == .days ? xAxisDateFormatter : xAxisMonthFormatter
                     AxisValueLabel {
