@@ -7,11 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		AE300B4A2E2AE30300D69865 /* AlamofireDynamic in Embed Frameworks */ = {isa = PBXBuildFile; productRef = AE3DEA052E25BB9A00DE5079 /* AlamofireDynamic */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		AE3DEA062E25BB9A00DE5079 /* AlamofireDynamic in Frameworks */ = {isa = PBXBuildFile; productRef = AE3DEA052E25BB9A00DE5079 /* AlamofireDynamic */; };
 		AE748D332E319D3900999287 /* PieChart in Frameworks */ = {isa = PBXBuildFile; productRef = AE748D322E319D3900999287 /* PieChart */; };
-		AE748D4C2E327BB600999287 /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = AE748D4B2E327BB600999287 /* Lottie */; };
-		AEBDFB712E29401D005F02C1 /* SkeletonView in Frameworks */ = {isa = PBXBuildFile; productRef = AEBDFB702E29401D005F02C1 /* SkeletonView */; };
+		AEFF28692E32868E004F6685 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = AEFF28682E32868E004F6685 /* Alamofire */; };
+		AEFF286C2E3287F4004F6685 /* LaunchAnimation in Frameworks */ = {isa = PBXBuildFile; productRef = AEFF286B2E3287F4004F6685 /* LaunchAnimation */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -31,7 +29,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				AE300B4A2E2AE30300D69865 /* AlamofireDynamic in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -81,10 +78,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AEBDFB712E29401D005F02C1 /* SkeletonView in Frameworks */,
 				AE748D332E319D3900999287 /* PieChart in Frameworks */,
-				AE3DEA062E25BB9A00DE5079 /* AlamofireDynamic in Frameworks */,
-				AE748D4C2E327BB600999287 /* Lottie in Frameworks */,
+				AEFF28692E32868E004F6685 /* Alamofire in Frameworks */,
+				AEFF286C2E3287F4004F6685 /* LaunchAnimation in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -162,10 +158,9 @@
 			);
 			name = Financify;
 			packageProductDependencies = (
-				AE3DEA052E25BB9A00DE5079 /* AlamofireDynamic */,
-				AEBDFB702E29401D005F02C1 /* SkeletonView */,
 				AE748D322E319D3900999287 /* PieChart */,
-				AE748D4B2E327BB600999287 /* Lottie */,
+				AEFF28682E32868E004F6685 /* Alamofire */,
+				AEFF286B2E3287F4004F6685 /* LaunchAnimation */,
 			);
 			productName = Financify;
 			productReference = AE19BFEB2DF8426B00879DED /* Financify.app */;
@@ -201,10 +196,9 @@
 			mainGroup = AE19BFE22DF8426B00879DED;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				AE3DEA042E25BB9A00DE5079 /* XCRemoteSwiftPackageReference "Alamofire" */,
-				AEBDFB6F2E29401D005F02C1 /* XCRemoteSwiftPackageReference "SkeletonView" */,
 				AE748D312E319D3900999287 /* XCLocalSwiftPackageReference "Utilities" */,
-				AE748D4A2E327BB600999287 /* XCRemoteSwiftPackageReference "lottie-ios" */,
+				AEFF28672E32868E004F6685 /* XCRemoteSwiftPackageReference "Alamofire" */,
+				AEFF286A2E3287F4004F6685 /* XCLocalSwiftPackageReference "LaunchAnimation" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = AE19BFEC2DF8426B00879DED /* Products */;
@@ -547,54 +541,36 @@
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Utilities;
 		};
+		AEFF286A2E3287F4004F6685 /* XCLocalSwiftPackageReference "LaunchAnimation" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = LaunchAnimation;
+		};
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		AE3DEA042E25BB9A00DE5079 /* XCRemoteSwiftPackageReference "Alamofire" */ = {
+		AEFF28672E32868E004F6685 /* XCRemoteSwiftPackageReference "Alamofire" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/Alamofire/Alamofire.git";
+			repositoryURL = "https://github.com/Alamofire/Alamofire";
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 5.10.2;
 			};
 		};
-		AE748D4A2E327BB600999287 /* XCRemoteSwiftPackageReference "lottie-ios" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/airbnb/lottie-ios";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 4.5.2;
-			};
-		};
-		AEBDFB6F2E29401D005F02C1 /* XCRemoteSwiftPackageReference "SkeletonView" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/Juanpe/SkeletonView";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.31.0;
-			};
-		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		AE3DEA052E25BB9A00DE5079 /* AlamofireDynamic */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = AE3DEA042E25BB9A00DE5079 /* XCRemoteSwiftPackageReference "Alamofire" */;
-			productName = AlamofireDynamic;
-		};
 		AE748D322E319D3900999287 /* PieChart */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = PieChart;
 		};
-		AE748D4B2E327BB600999287 /* Lottie */ = {
+		AEFF28682E32868E004F6685 /* Alamofire */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = AE748D4A2E327BB600999287 /* XCRemoteSwiftPackageReference "lottie-ios" */;
-			productName = Lottie;
+			package = AEFF28672E32868E004F6685 /* XCRemoteSwiftPackageReference "Alamofire" */;
+			productName = Alamofire;
 		};
-		AEBDFB702E29401D005F02C1 /* SkeletonView */ = {
+		AEFF286B2E3287F4004F6685 /* LaunchAnimation */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = AEBDFB6F2E29401D005F02C1 /* XCRemoteSwiftPackageReference "SkeletonView" */;
-			productName = SkeletonView;
+			productName = LaunchAnimation;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

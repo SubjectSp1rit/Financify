@@ -22,10 +22,8 @@ public struct Entity: Equatable {
 public class PieChartView: UIView {
     public var entities: [Entity] = [] {
         didSet {
-            if !isAnimating {
-                prepareSegments()
-                setNeedsDisplay()
-            }
+            prepareSegments()
+            setNeedsDisplay()
         }
     }
 
