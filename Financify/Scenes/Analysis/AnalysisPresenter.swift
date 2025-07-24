@@ -35,12 +35,23 @@ final class AnalysisPresenter: AnalysisPresentationLogic {
             )
         }
         
+        await view?.applyCategories(viewModels: vms)
+    }
+    
+    func presentChart(summaries: [CategorySummary]) async {
         let chartEntities = summaries.map {
             Entity(value: $0.total, label: $0.category.name)
         }
         
-        view?.applyCategories(viewModels: vms)
-        view?.applyChart(chartEntities)
+        await view?.applyChart(chartEntities)
+    }
+    
+    func presentSortOptionChanged() async {
+        await view?.applySortOptionChanged()
+    }
+    
+    func presentDateControlsRefreshed() async {
+        await view?.applyDateControlsRefreshed()
     }
     
     func presentTransactions(
@@ -75,7 +86,7 @@ final class AnalysisPresenter: AnalysisPresentationLogic {
             )
         }
 
-        view?.applyTransactions(vms)
+        await view?.applyTransactions(vms)
     }
     
     func presentLoading(isLoading: Bool) async {

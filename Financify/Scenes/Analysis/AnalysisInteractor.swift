@@ -19,33 +19,11 @@ final class AnalysisInteractor: AnalysisBusinessLogic, AnalysisBusinessStorage {
     private(set) var isOffline: Bool = false
     private var networkStatusTask: Task<Void, Never>? = nil
     
-    private(set) var fromDate: Date {
-        willSet {
-            if newValue > toDate {
-                toDate = newValue
-            }
-        }
-        didSet {
-            Task { await refresh() }
-        }
-    }
+    private(set) var fromDate: Date
     
-    private(set) var toDate: Date {
-        willSet {
-            if newValue < fromDate {
-                fromDate = newValue
-            }
-        }
-        didSet {
-            Task { await refresh() }
-        }
-    }
+    private(set) var toDate: Date
     
-    private(set) var showEmptyCategories = false {
-        didSet {
-            Task { await refresh() }
-        }
-    }
+    private(set) var showEmptyCategories = false
     
     var total: Decimal {
         transactions.reduce(0) { $0 + $1.amount }
@@ -62,7 +40,7 @@ final class AnalysisInteractor: AnalysisBusinessLogic, AnalysisBusinessStorage {
     
     private(set) var selectedSortOption: SortOption = .newestFirst {
         didSet {
-            Task { await refresh() }
+            Task { await reapplyFiltersAndSort() }
         }
     }
     
@@ -95,11 +73,25 @@ final class AnalysisInteractor: AnalysisBusinessLogic, AnalysisBusinessStorage {
     
     // MARK: - Methods
     func setFromDate(_ date: Date) async {
-        fromDate = date
+        self.fromDate = date
+        if self.fromDate > self.toDate {
+            self.toDate = self.fromDate
+        }
+        
+        await refresh()
+        
+        await presenter.presentDateControlsRefreshed()
     }
     
     func setToDate(_ date: Date) async {
-        toDate = date
+        self.toDate = date
+        if self.toDate < self.fromDate {
+            self.fromDate = self.toDate
+        }
+        
+        await refresh()
+        
+        await presenter.presentDateControlsRefreshed()
     }
     
     func setSortOption(_ option: SortOption) async {
@@ -107,10 +99,14 @@ final class AnalysisInteractor: AnalysisBusinessLogic, AnalysisBusinessStorage {
     }
     
     func setShowEmptyCategories(_ flag: Bool) async {
-        showEmptyCategories = flag
+        self.showEmptyCategories = flag
+        
+        await reapplyFiltersAndSort()
     }
     
     func refresh() async {
+        guard !isLoading else { return }
+        
         await presenter.presentOfflineStatus(isOffline: self.isOffline)
         isLoading = true
         await presenter.presentLoading(isLoading: true)
@@ -132,57 +128,9 @@ final class AnalysisInteractor: AnalysisBusinessLogic, AnalysisBusinessStorage {
 
             currency   = Currency(jsonTitle: account.currency)
             categories = Dictionary(uniqueKeysWithValues: cats.map { ($0.id, $0) })
-
-            transactions = txsRaw.filter {
-                guard let cat = categories[$0.categoryId] else { return false }
-                return direction == .income ? cat.isIncome : !cat.isIncome
-            }
-
-            let grouped = Dictionary(grouping: transactions, by: \.categoryId)
-            let filteredCats = categories.values.filter { $0.direction == direction }
-
-            if showEmptyCategories {
-                summaries = filteredCats.map { cat in
-                    let sum = grouped[cat.id]?.reduce(0) { $0 + $1.amount } ?? 0
-                    return CategorySummary(category: cat, total: sum)
-                }
-            } else {
-                summaries = grouped.compactMap { id, items in
-                    guard let cat = categories[id], cat.direction == direction else { return nil }
-                    let sum = items.reduce(0) { $0 + $1.amount }
-                    return CategorySummary(category: cat, total: sum)
-                }
-            }
             
-            switch selectedSortOption {
-            case .newestFirst:
-                transactions.sort { $0.transactionDate > $1.transactionDate }
-                summaries.sort { $0.total > $1.total }
-            case .oldestFirst:
-                transactions.sort { $0.transactionDate < $1.transactionDate }
-                summaries.sort { $0.total > $1.total }
-            case .amountDescending:
-                transactions.sort { $0.amount > $1.amount }
-                summaries.sort { $0.total > $1.total }
-            case .amountAscending:
-                transactions.sort { $0.amount < $1.amount }
-                summaries.sort { $0.total < $1.total }
-            }
-
-            async let sendCats: () = presenter.presentCategories(
-                summaries: summaries,
-                total: total,
-                currency: currency
-            )
+            await reapplyFiltersAndSort(sourceTransactions: txsRaw)
             
-            async let sendTxs: () = presenter.presentTransactions(
-                transactions: transactions,
-                total: total,
-                currency: currency,
-                categories: categories
-            )
-            
-            _ = await (sendCats, sendTxs)
         } catch NetworkError.serverError(let statusCode, let data) {
             print("Ошибка сервера – статус \(statusCode)")
             if let data = data,
@@ -199,6 +147,62 @@ final class AnalysisInteractor: AnalysisBusinessLogic, AnalysisBusinessStorage {
             print("Сетевая ошибка или другое исключение:", error.localizedDescription)
         } catch {
             print("Непредвиденная ошибка: \(error.localizedDescription)")
+        }
+    }
+    
+    private func reapplyFiltersAndSort(sourceTransactions: [Transaction]? = nil) async {
+        let transactionsToProcess = sourceTransactions ?? self.transactions
+        
+        self.transactions = transactionsToProcess.filter {
+            guard let cat = categories[$0.categoryId] else { return false }
+            return direction == .income ? cat.isIncome : !cat.isIncome
+        }
+
+        let grouped = Dictionary(grouping: self.transactions, by: \.categoryId)
+        let filteredCats = categories.values.filter { $0.direction == direction }
+
+        if showEmptyCategories {
+            summaries = filteredCats.map { cat in
+                let sum = grouped[cat.id]?.reduce(0) { $0 + $1.amount } ?? 0
+                return CategorySummary(category: cat, total: sum)
+            }
+        } else {
+            summaries = grouped.compactMap { id, items in
+                guard let cat = categories[id], cat.direction == direction else { return nil }
+                let sum = items.reduce(0) { $0 + $1.amount }
+                return CategorySummary(category: cat, total: sum)
+            }
+        }
+        
+        switch selectedSortOption {
+        case .newestFirst:
+            self.transactions.sort { $0.transactionDate > $1.transactionDate }
+            summaries.sort { $0.total > $1.total }
+        case .oldestFirst:
+            self.transactions.sort { $0.transactionDate < $1.transactionDate }
+            summaries.sort { $0.total > $1.total }
+        case .amountDescending:
+            self.transactions.sort { $0.amount > $1.amount }
+            summaries.sort { $0.total > $1.total }
+        case .amountAscending:
+            self.transactions.sort { $0.amount < $1.amount }
+            summaries.sort { $0.total < $1.total }
+        }
+        
+        async let presentChart: () = presenter.presentChart(summaries: summaries)
+        async let presentCategories: () = presenter.presentCategories(
+            summaries: summaries, total: total, currency: currency
+        )
+        async let presentTransactions: () = presenter.presentTransactions(
+            transactions: transactions, total: total, currency: currency, categories: categories
+        )
+        
+        // Если мы не получали новые данные, значит изменилась сортировка - обновляем кнопку
+        if sourceTransactions == nil {
+            async let presentSort: () = presenter.presentSortOptionChanged()
+            _ = await (presentChart, presentCategories, presentTransactions, presentSort)
+        } else {
+            _ = await (presentChart, presentCategories, presentTransactions)
         }
     }
     

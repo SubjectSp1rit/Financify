@@ -1,6 +1,15 @@
 import UIKit
 
-public struct Entity {
+fileprivate extension UIView {
+    func asImage() -> UIImage {
+        let renderer = UIGraphicsImageRenderer(bounds: bounds)
+        return renderer.image { context in
+            layer.render(in: context.cgContext)
+        }
+    }
+}
+
+public struct Entity: Equatable {
     public let value: Decimal
     public let label: String
 
@@ -13,14 +22,16 @@ public struct Entity {
 public class PieChartView: UIView {
     public var entities: [Entity] = [] {
         didSet {
-            prepareSegments()
-            setNeedsDisplay()
+            if !isAnimating {
+                prepareSegments()
+                setNeedsDisplay()
+            }
         }
     }
 
     public var lineWidth: CGFloat = 8
+    private var isAnimating = false
 
-    // Структура для уже подготовленных сегментов
     private struct Segment {
         let value: CGFloat
         let percentage: CGFloat
@@ -37,6 +48,53 @@ public class PieChartView: UIView {
         .systemRed,
         .systemOrange
     ]
+    
+    public func animateUpdate(to newEntities: [Entity]) {
+        guard !isAnimating, !entities.isEmpty else {
+            self.entities = newEntities
+            self.prepareSegments()
+            self.setNeedsDisplay()
+            return
+        }
+        
+        isAnimating = true
+
+        let snapshotView = UIImageView(image: self.asImage())
+        snapshotView.frame = self.bounds
+        self.addSubview(snapshotView)
+        
+        self.segments = []
+        self.setNeedsDisplay()
+
+        let duration: TimeInterval = 0.35
+
+        UIView.animate(withDuration: duration, delay: 0, options: .curveEaseIn, animations: {
+            snapshotView.transform = CGAffineTransform(rotationAngle: .pi)
+            snapshotView.alpha = 0.0
+        }, completion: { [weak self] _ in
+            guard let self = self else { return }
+
+            snapshotView.removeFromSuperview()
+
+            self.entities = newEntities
+            self.prepareSegments()
+            
+            self.setNeedsDisplay()
+
+            self.alpha = 0.0
+            self.transform = CGAffineTransform(rotationAngle: -.pi)
+
+            UIView.animate(withDuration: duration, delay: 0, options: .curveEaseOut, animations: {
+                self.transform = .identity
+                self.alpha = 1.0
+            }, completion: { [weak self] finished in
+                if finished {
+                    self?.transform = .identity
+                }
+                self?.isAnimating = false
+            })
+        })
+    }
 
     private func prepareSegments() {
         let sorted = entities.sorted { $0.value > $1.value }

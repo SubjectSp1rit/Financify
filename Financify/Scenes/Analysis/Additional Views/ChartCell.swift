@@ -19,7 +19,13 @@ final class ChartCell: UITableViewCell {
 
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
-    func configure(with entities: [Entity]) {
-        chartView.entities = entities
+    func configure(with entities: [Entity], animated: Bool = false) {
+        if animated {
+            chartView.animateUpdate(to: entities)
+        } else {
+            chartView.transform = .identity
+            chartView.alpha = 1.0
+            chartView.entities = entities
+        }
     }
 }

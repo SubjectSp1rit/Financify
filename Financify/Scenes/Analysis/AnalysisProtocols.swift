@@ -36,6 +36,12 @@ protocol AnalysisPresentationLogic {
         categories: [Int: Category]
     ) async
     
+    func presentChart(summaries: [CategorySummary]) async
+    
+    func presentSortOptionChanged() async
+    
+    func presentDateControlsRefreshed() async
+    
     func presentLoading(
         isLoading: Bool
     ) async
