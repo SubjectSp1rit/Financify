@@ -14,6 +14,7 @@ struct BalanceView: View {
     @State private var editingTotalText: String = ""
     @FocusState private var totalFieldIsFocused: Bool
     
+    @State private var longPressActivated: Bool = false
     private let chartHorizontalPadding: CGFloat = 10
     
     private let xAxisDateFormatter: DateFormatter = {
@@ -206,7 +207,28 @@ struct BalanceView: View {
             Section {
                 VStack(alignment: .leading, spacing: 16) {
                     balanceChart
-                    
+                        .chartOverlay { proxy in
+                            ChartInteractionOverlay(
+                                proxy: proxy,
+                                viewModel: viewModel,
+                                dragLocation: $dragLocation,
+                                showDetailPopup: $showDetailPopup,
+                                longPressActivated: $longPressActivated,
+                                chartHorizontalPadding: chartHorizontalPadding
+                            )
+                        }
+                        .sheet(isPresented: $showDetailPopup, onDismiss: {
+                            self.longPressActivated = false
+                            viewModel.clearChartSelection()
+                        }) {
+                            if let dataPoint = viewModel.selectedDataPoint {
+                                TransactionDetailPopupView(dataPoint: dataPoint, currency: viewModel.selectedCurrency)
+                                    .presentationDetents([.height(200)])
+                            }
+                        }
+                        .animation(.easeInOut(duration: 0.2), value: viewModel.chartData)
+                        .animation(.easeInOut, value: viewModel.selectedDataPoint)
+
                     Picker("Период", selection: $viewModel.selectedPeriod) {
                         ForEach(ChartPeriod.allCases) { period in
                             Text(period.rawValue).tag(period)
@@ -222,7 +244,9 @@ struct BalanceView: View {
     }
     
     private var balanceChart: some View {
-        let chart = Chart(viewModel.chartData) { dataPoint in
+        let labels = viewModel.chartDateLabels!
+
+        return Chart(viewModel.chartData) { dataPoint in
             RuleMark(
                 x: .value("Дата", dataPoint.date),
                 yStart: .value("Начало", 0),
@@ -236,13 +260,11 @@ struct BalanceView: View {
             ChartDataPoint.BalanceChangeType.expense.rawValue: Color.orange
         ])
         .chartXAxis {
-            if let labels = viewModel.chartDateLabels {
-                AxisMarks(preset: .aligned, values: [labels.start, labels.mid, labels.end]) { value in
-                    if let date = value.as(Date.self) {
-                        let formatter = viewModel.selectedPeriod == .days ? xAxisDateFormatter : xAxisMonthFormatter
-                        AxisValueLabel {
-                            Text(date, formatter: formatter)
-                        }
+            AxisMarks(values: [labels.start, labels.mid, labels.end]) { value in
+                if let date = value.as(Date.self) {
+                    let formatter = viewModel.selectedPeriod == .days ? xAxisDateFormatter : xAxisMonthFormatter
+                    AxisValueLabel {
+                        Text(date, formatter: formatter)
                     }
                 }
             }
@@ -251,25 +273,6 @@ struct BalanceView: View {
         .chartLegend(.hidden)
         .frame(height: 150)
         .padding(.horizontal, chartHorizontalPadding)
-        .chartOverlay { proxy in
-            ChartInteractionOverlay(
-                proxy: proxy,
-                viewModel: viewModel,
-                dragLocation: $dragLocation,
-                showDetailPopup: $showDetailPopup,
-                chartHorizontalPadding: chartHorizontalPadding
-            )
-        }
-        .sheet(isPresented: $showDetailPopup) {
-            if let dataPoint = viewModel.selectedDataPoint {
-                TransactionDetailPopupView(dataPoint: dataPoint)
-                    .presentationDetents([.height(200)])
-            }
-        }
-        .animation(.easeInOut(duration: 0.2), value: viewModel.chartData)
-        .animation(.easeInOut, value: viewModel.selectedDataPoint)
-
-        return AnyView(chart)
     }
     
     @ViewBuilder
@@ -294,23 +297,22 @@ struct BalanceView: View {
         .position(x: position.x, y: 30)
     }
     
-    struct TransactionDetailPopupView: View {
+    private struct TransactionDetailPopupView: View {
         let dataPoint: ChartDataPoint
+        let currency: Currency
         
         var body: some View {
             VStack(spacing: 16) {
                 Text("Детали за \(dataPoint.date, style: .date)")
                     .font(.title2.bold())
-                
                 HStack {
                     Text("Изменение баланса:")
                         .font(.headline)
                     Spacer()
-                    Text(dataPoint.amount, format: .currency(code: "RUB"))
+                    Text("\(dataPoint.amount.moneyFormatted) \(currency.rawValue)")
                         .font(.headline.monospaced())
                         .foregroundColor(dataPoint.type == .income ? .green : .red)
                 }
-                
                 Spacer()
             }
             .padding()
