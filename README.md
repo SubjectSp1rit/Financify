@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://github.com/ars-fin/Financify/blob/main/Financify/Financify/Preview%20Content/Assets.xcassets/AppIcon.appiconset/Neon%20Finance%20App%20Logo%20Jul%2017%202025%20(1).png?raw=true" alt="Financify App Icon" width="150" height="150">
+  <img src="/static/img/logo.png" width=130px, height=130px>
   <h1>Financify 🐷</h1>
   <p><strong>iOS-приложение для учета финансов</strong></p>
   <p>
